@@ -234,7 +234,7 @@ When the ball goes out of bounds, the game is over! Hit `ctrl+c` to exit the log
 
 The second configuration uses an _egress_ edge proxy, which acts as a bridge between the meshes. Instead of pointing each service to the ingress edge of the other mesh, only the egress proxy knows about the second mesh and all services route to it instead. This can be beneficial for security and for monitoring cross-mesh traffic. In this scenario, sidecars that want to talk to the other mesh don't need to know how to authenticate with it, they just need to be able to talk to the egress proxy.
 
-![](./assets/svc-to-meshb-egress-2.png)
+![](./assets/svc-to-meshb-egress.png)
 
 There is already an `egress-edge` proxy deployed into your environment, we'll just need to tweak the configuration to make this work.
 
