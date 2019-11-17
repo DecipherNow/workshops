@@ -31,7 +31,7 @@ You should have received keys to an already running EC2 instance. To get started
 # ssh into ec2 if you haven't already
 ssh -i certificate.pem ubuntu@your-ec2-instance.compute-1.amazonaws.com
 # start the mesh on the ec2 instance
-setup
+./setup
 ```
 
 You'll be prompted for the username and password that you use to log in to [Nexus](https://nexus.production.deciphernow.com/). The setup will take 3-5min, so go ahead and read the next section while you wait. If the setup was successful, you should see `The mesh is ready at https://$PUBLIC_IP:30000 !` printed to the console.
@@ -154,7 +154,7 @@ Trade IP addresses with your partner.
 Open `cluster-mesh-2.json` by running:
 
 ```sh
-vim cluster-mesh-2.json
+nano cluster-mesh-2.json
 ```
 
 There are a couple things to note here:
@@ -162,7 +162,7 @@ There are a couple things to note here:
 - The `ssl_config` field defines the credentials that are expected to be present on disk when a proxy routes to this cluster. This has already been filled out for you and the client certs for the Edge node have been added to the Ping Pong sidecar.
 - Notice that the cluster object doesn't link to any other object except the very top level zone object. Clusters can link to as many services as you want via `shared_rules`.
 
-To edit the file, hit `i` for interactive mode. Replace `x.x.x.x` in the instances array with the IP that you noted from your partner. Hit `esc` and then `:wq` to save the file. To apply the file, run:
+Edit the file and replace `x.x.x.x` in the instances array with the IP that you noted from your partner and save. To apply the file, run:
 
 ```sh
 greymatter create cluster < cluster-mesh-2.json
@@ -238,7 +238,7 @@ The second configuration uses an _egress_ edge proxy, which acts as a bridge bet
 
 There is already an `egress-edge` proxy deployed into your environment, we'll just need to tweak the configuration to make this work.
 
-Run the following and change the `shared_rules_key` to `shared-rules-egress-edge`. Hit `i` to enter interactive mode and `:wq` to save and apply.
+Run the following and change the `shared_rules_key` from `mesh-2-shared-rules` to `shared-rules-egress-edge`. Save the file.
 
 ```sh
 # Edit both routes to use the`shared-rules-egress-edge` shared_rules key
