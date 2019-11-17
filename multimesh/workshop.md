@@ -108,7 +108,7 @@ Let's take a second to talk about how a service knows about other network addres
 In your terminal, run the following command, which will exec into the Ping Pong service sidecar and hit the admin endpoint to list all the clusters this sidecar knows about. This is how we can see what configuration the sidecar got from GM Control*.
 
 ```sh
-kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c sidecar curl localhost:8001/clusters
+kubectl exec -it deployment/ping-pong -c sidecar curl localhost:8001/clusters
 ```
 
 This endpoint lists all the `clusters`, or network addressable locations, that our Ping Pong Service has been configured to route to. You should see something like:
@@ -128,7 +128,7 @@ The Ping Pong sidecar knows about 2 other `clusters`: GM Control (`xds_cluster`)
 
 To get a service to "know about" another and end up in that list of clusters, we need to configure 3 objects: `cluster`, `route`, and `shared_rules`. If you scroll back up to the Ping Pong configuration diagram, you'll see how the route is really the link between the service and the cluster.
 
-> _Try comparing the Ping Pong service clusters to the Edge service clusters. How and why are they different? To see edge clusters, you can run `kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^edge') curl http://localhost:8001/clusters`_
+> _Try comparing the Ping Pong service clusters to the Edge service clusters. How and why are they different? To see edge clusters, you can run `kubectl exec -it deployment/edge curl http://localhost:8001/clusters`_
 
 _*The admin endpoint is a great tool for debugging the mesh. All the proxies in this mesh are deployed with the admin port exposed on 8001. There are many other endpoints besides /cluster that you can explore to understand how the proxy was configured. See the [envoy admin docs](https://www.envoyproxy.io/docs/envoy/latest/operations/admin) for more detailed info._
 
@@ -197,7 +197,7 @@ greymatter create route < route-ping-pong-to-mesh-2.json
 Let's check the Ping Pong sidecar's clusters to confirm everything is working correctly.
 
 ```sh
-kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c sidecar curl localhost:8001/clusters
+kubectl exec -it deployment/ping-pong -c sidecar curl localhost:8001/clusters
 ```
 
 If the configuration was successful, you should see the mesh2 cluster somewhere in that list with the IP and port we configured. 
@@ -213,7 +213,7 @@ At this point, check with your partner to see if they have successfully complete
 You and your partner should follow the logs for the Ping Pong service in your respective meshes:
 
 ```sh
-kubectl logs $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c ping-pong -f
+kubectl logs deployment/ping-pong -c ping-pong -f
 ```
 
 Pick **one** person to initiate the game and run the following command in another tab.
@@ -259,7 +259,7 @@ Here's a diagram of the configuration we just implemented:
 Let's confirm that we've set up all the routes correctly for egress-edge. Hit the admin endpoint of the egress-edge proxy by running:
 
 ```sh
-kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^egress-edge') curl localhost:8001/clusters
+kubectl exec -it deployment/egress-edge curl localhost:8001/clusters
 ```
 
 You should see something like:
@@ -277,7 +277,7 @@ mesh2::54.80.76.176:30000::cx_total::2
 This validates that the egress-edge is looking for a cluster `mesh2` and has found it at the endpoint `54.80.76.176:30000`. Follow the logs for Ping Pong again:
 
 ```sh
-kubectl logs $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c ping-pong -f
+kubectl logs deployment/ping-pong -c ping-pong -f
 ```
 
 In another tab, initiate the game just like we did before:
@@ -287,7 +287,7 @@ In another tab, initiate the game just like we did before:
 The game should look exactly as it did in the previous setup. Once someone wins, hit `ctrl+c` to exit the logs. Now take a look at the logs for our egress-edge proxy:
 
 ```sh
-kubectl logs $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^egress-edge') -f
+kubectl logs deployment/egress-edge -f
 ```
 
 You should see all the requests from the Ping Pong service.
