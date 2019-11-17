@@ -51,7 +51,7 @@
     },
     {
       "type": "file",
-      "source": "./gmsetup.sh",
+      "source": "./setup.sh",
       "destination": "~/"
     },
     {

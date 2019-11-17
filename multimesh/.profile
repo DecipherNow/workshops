@@ -26,7 +26,6 @@ if [ -d "$HOME/.local/bin" ]; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-alias setup=". ./gmsetup.sh"
 alias kubectl='sudo kubectl'
 alias minikube='sudo minikube'
 export PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
