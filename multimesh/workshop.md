@@ -31,7 +31,7 @@ You should have received keys to an already running EC2 instance. To get started
 # ssh into ec2 if you haven't already
 ssh -i certificate.pem ubuntu@your-ec2-instance.compute-1.amazonaws.com
 # start the mesh on the ec2 instance
-./setup
+./setup.sh
 ```
 
 You'll be prompted for the username and password that you use to log in to [Nexus](https://nexus.production.deciphernow.com/). The setup will take 3-5min, so go ahead and read the next section while you wait. If the setup was successful, you should see `The mesh is ready at https://$PUBLIC_IP:30000 !` printed to the console.
