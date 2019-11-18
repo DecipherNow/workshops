@@ -10,7 +10,7 @@
       "instance_type": "t2.large",
       "source_ami": "ami-0a8582177e6a57ebb",
       "ssh_username": "ubuntu",
-      "ami_name": "gm-multimesh",
+      "ami_name": "gm-multimesh-workshop",
       "ami_description": "Grey Matter Multimesh Workshop",
       "run_tags": {
         "Name": "packer-builder-docker",
