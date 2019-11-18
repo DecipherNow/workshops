@@ -1,6 +1,6 @@
 # Grey Matter Workshops
 
-This is a colleciton of workshops to help you get familiar Grey Matter.
+This is a collection of workshops to help you get going with Grey Matter.
 
 - Training
   - [Syllabus](training/0.%20Syllabus.md)
