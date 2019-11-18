@@ -1,6 +1,6 @@
 # Multimesh workshop
 
-This workshop covers multi-mesh configuration with Grey Matter. The workshop material can be found [here](https://github.com/kaitmore/multimesh-workshop/blob/master/workshop.md).
+This workshop covers multi-mesh configuration with Grey Matter. The workshop material can be found [here](./workshop.md).
 
 ## Requirements
 
@@ -31,7 +31,7 @@ Using the security group ID returned from the first command and your key name, e
 aws ec2 run-instances --image-id ami-010b6e54be2bc11c6  --count 1 --key-name <key-pair-name> --instance-type t2.large --security-group-ids <security-group-id>
 ```
 
-Once the instance is up, you can start working through the [workshop material.](https://github.com/kaitmore/multimesh-workshop/blob/master/workshop.md)
+Once the instance is up, you can start working through the [workshop material.](./workshop.md)
 
 ## Building the AMI
 
