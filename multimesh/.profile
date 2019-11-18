@@ -26,9 +26,10 @@ if [ -d "$HOME/.local/bin" ]; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-alias setup=". ./gmsetup.sh"
 alias kubectl='sudo kubectl'
 alias minikube='sudo minikube'
+alias destroy='kubectl delete -f template.yaml && kubectl delete secret docker.secret'
+
 export PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
 export GREYMATTER_CONSOLE_LEVEL=debug
 export GREYMATTER_API_KEY=xxx

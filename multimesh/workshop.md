@@ -31,7 +31,7 @@ You should have received keys to an already running EC2 instance. To get started
 # ssh into ec2 if you haven't already
 ssh -i certificate.pem ubuntu@your-ec2-instance.compute-1.amazonaws.com
 # start the mesh on the ec2 instance
-setup
+./setup.sh
 ```
 
 You'll be prompted for the username and password that you use to log in to [Nexus](https://nexus.production.deciphernow.com/). The setup will take 3-5min, so go ahead and read the next section while you wait. If the setup was successful, you should see `The mesh is ready at https://$PUBLIC_IP:30000 !` printed to the console.
@@ -108,7 +108,7 @@ Let's take a second to talk about how a service knows about other network addres
 In your terminal, run the following command, which will exec into the Ping Pong service sidecar and hit the admin endpoint to list all the clusters this sidecar knows about. This is how we can see what configuration the sidecar got from GM Control*.
 
 ```sh
-kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c sidecar curl localhost:8001/clusters
+kubectl exec -it deployment/ping-pong -c sidecar curl localhost:8001/clusters
 ```
 
 This endpoint lists all the `clusters`, or network addressable locations, that our Ping Pong Service has been configured to route to. You should see something like:
@@ -128,7 +128,7 @@ The Ping Pong sidecar knows about 2 other `clusters`: GM Control (`xds_cluster`)
 
 To get a service to "know about" another and end up in that list of clusters, we need to configure 3 objects: `cluster`, `route`, and `shared_rules`. If you scroll back up to the Ping Pong configuration diagram, you'll see how the route is really the link between the service and the cluster.
 
-> _Try comparing the Ping Pong service clusters to the Edge service clusters. How and why are they different? To see edge clusters, you can run `kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^edge') curl http://localhost:8001/clusters`_
+> _Try comparing the Ping Pong service clusters to the Edge service clusters. How and why are they different? To see edge clusters, you can run `kubectl exec -it deployment/edge curl http://localhost:8001/clusters`_
 
 _*The admin endpoint is a great tool for debugging the mesh. All the proxies in this mesh are deployed with the admin port exposed on 8001. There are many other endpoints besides /cluster that you can explore to understand how the proxy was configured. See the [envoy admin docs](https://www.envoyproxy.io/docs/envoy/latest/operations/admin) for more detailed info._
 
@@ -154,7 +154,7 @@ Trade IP addresses with your partner.
 Open `cluster-mesh-2.json` by running:
 
 ```sh
-vim cluster-mesh-2.json
+nano cluster-mesh-2.json
 ```
 
 There are a couple things to note here:
@@ -162,7 +162,7 @@ There are a couple things to note here:
 - The `ssl_config` field defines the credentials that are expected to be present on disk when a proxy routes to this cluster. This has already been filled out for you and the client certs for the Edge node have been added to the Ping Pong sidecar.
 - Notice that the cluster object doesn't link to any other object except the very top level zone object. Clusters can link to as many services as you want via `shared_rules`.
 
-To edit the file, hit `i` for interactive mode. Replace `x.x.x.x` in the instances array with the IP that you noted from your partner. Hit `esc` and then `:wq` to save the file. To apply the file, run:
+Edit the file and replace `x.x.x.x` in the instances array with the IP that you noted from your partner and save. To apply the file, run:
 
 ```sh
 greymatter create cluster < cluster-mesh-2.json
@@ -197,7 +197,7 @@ greymatter create route < route-ping-pong-to-mesh-2.json
 Let's check the Ping Pong sidecar's clusters to confirm everything is working correctly.
 
 ```sh
-kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c sidecar curl localhost:8001/clusters
+kubectl exec -it deployment/ping-pong -c sidecar curl localhost:8001/clusters
 ```
 
 If the configuration was successful, you should see the mesh2 cluster somewhere in that list with the IP and port we configured. 
@@ -213,7 +213,7 @@ At this point, check with your partner to see if they have successfully complete
 You and your partner should follow the logs for the Ping Pong service in your respective meshes:
 
 ```sh
-kubectl logs $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c ping-pong -f
+kubectl logs deployment/ping-pong -c ping-pong -f
 ```
 
 Pick **one** person to initiate the game and run the following command in another tab.
@@ -234,11 +234,11 @@ When the ball goes out of bounds, the game is over! Hit `ctrl+c` to exit the log
 
 The second configuration uses an _egress_ edge proxy, which acts as a bridge between the meshes. Instead of pointing each service to the ingress edge of the other mesh, only the egress proxy knows about the second mesh and all services route to it instead. This can be beneficial for security and for monitoring cross-mesh traffic. In this scenario, sidecars that want to talk to the other mesh don't need to know how to authenticate with it, they just need to be able to talk to the egress proxy.
 
-![](./assets/svc-to-meshb-egress-2.png)
+![](./assets/svc-to-meshb-egress.png)
 
 There is already an `egress-edge` proxy deployed into your environment, we'll just need to tweak the configuration to make this work.
 
-Run the following and change the `shared_rules_key` to `shared-rules-egress-edge`. Hit `i` to enter interactive mode and `:wq` to save and apply.
+Run the following and change the `shared_rules_key` from `mesh-2-shared-rules` to `shared-rules-egress-edge`. Save the file.
 
 ```sh
 # Edit both routes to use the`shared-rules-egress-edge` shared_rules key
@@ -259,7 +259,7 @@ Here's a diagram of the configuration we just implemented:
 Let's confirm that we've set up all the routes correctly for egress-edge. Hit the admin endpoint of the egress-edge proxy by running:
 
 ```sh
-kubectl exec -it $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^egress-edge') curl localhost:8001/clusters
+kubectl exec -it deployment/egress-edge curl localhost:8001/clusters
 ```
 
 You should see something like:
@@ -277,7 +277,7 @@ mesh2::54.80.76.176:30000::cx_total::2
 This validates that the egress-edge is looking for a cluster `mesh2` and has found it at the endpoint `54.80.76.176:30000`. Follow the logs for Ping Pong again:
 
 ```sh
-kubectl logs $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^ping-pong') -c ping-pong -f
+kubectl logs deployment/ping-pong -c ping-pong -f
 ```
 
 In another tab, initiate the game just like we did before:
@@ -287,7 +287,7 @@ In another tab, initiate the game just like we did before:
 The game should look exactly as it did in the previous setup. Once someone wins, hit `ctrl+c` to exit the logs. Now take a look at the logs for our egress-edge proxy:
 
 ```sh
-kubectl logs $(kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep '^egress-edge') -f
+kubectl logs deployment/egress-edge -f
 ```
 
 You should see all the requests from the Ping Pong service.
