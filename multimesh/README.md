@@ -8,7 +8,7 @@ This workshop covers multi-mesh configuration with Grey Matter. The workshop mat
 - Decipher quickstart certs
 - Decipher Nexus login
 
-## Deploying an EC2 instance
+### Deploying an EC2 instance
 
 To get started you will need to deploy an AWS instance using the AMI `ami-0eaf313048fbe3213`.
 
@@ -32,3 +32,15 @@ aws ec2 run-instances --image-id ami-0eaf313048fbe3213  --count 1 --key-name <ke
 ```
 
 Once the instance is up, you can start working through the [workshop material.](https://github.com/kaitmore/multimesh-workshop/blob/master/workshop.md)
+
+## Building the AMI
+
+There is a build.json file in this repository that contains a [packer](https://packer.io) build configuration for the AMI.
+
+To build, first [install packer](https://packer.io/intro/getting-started/install.html). Then run:
+
+```sh
+packer build ./build.json
+```
+
+NOTE: It is not necessary (or advised) to build the AMI if you're just trying to run the workshop. You should just need to follow the instructions in [Deploying an EC2 instance.](#deploying-an-ec2-instance)
