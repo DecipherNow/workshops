@@ -476,7 +476,7 @@ In the same terminal where you set the environment variables for the Grey Matter
     "enableInstanceMetrics": true,
     "enableHistoricalMetrics": true,
     "metricsPort": 8081
-'
+}
 ```
 
 Send it to the Catalog service with
@@ -507,13 +507,7 @@ If you just deployed your service, wait a few minutes. To avoid network chattine
 
 ### "Upstream connect error or disconnect/reset before headers"
 
-The edge proxy is likely not configured correctly to talk to the service, or the service cannot be found for some other reason. Check the service announcement/discovery pathway. 
+The edge proxy is likely not configured correctly to talk to the service, or the service cannot be found for some other reason. Check the service announcement/discovery pathway.
 
 1. In the Kubernetes config, is the service's `spec.template.metadata.labels` `app: fibonacci` label intact?
-2. 
-
-
-
-
-
 
