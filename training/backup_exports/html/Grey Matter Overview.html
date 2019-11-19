@@ -1,0 +1,50 @@
+<!DOCTYPE html><html><head><title>Grey Matter Overview</title><meta charset='utf-8'><link href='https://d31qtcb7c58z3n.cloudfront.net/res-min/themes/marxico.css' rel='stylesheet'><style>
+.note-content  {font-family: "Helvetica Neue", Arial, "Hiragino Sans GB", STHeiti, "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, Song, sans-serif;}
+
+</style></head><body><div id='preview-contents' class='note-content'>
+                        
+                    
+
+
+
+<h1 id="grey-matter-overview">Grey Matter Overview</h1>
+
+<div><div class="toc"><div class="toc">
+<ul>
+<li><a href="#grey-matter-overview">Grey Matter Overview</a><ul>
+<li><a href="#what-is-a-service-mesh">What is a service mesh?</a></li>
+<li><a href="#grey-matter-features-overview">Grey Matter features overview</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+
+<h2 id="what-is-a-service-mesh">What is a service mesh?</h2>
+
+<p><em>Microservices</em> are a powerful and popular architectural pattern for modern cloud-based development and deployment. However, some activities are rendered <em>more</em> complex with microservices than under previous paradigms, such as announcement, discovery, instrumentation, logging, tracing, troubleshooting, encryption, and access control. The purpose of a “service mesh” is therefore to realize the promise of microservices by abstracting any extra complexity away from individual service developers, and into a “sidecar” proxy that can be paired with each service. The sidecar then provides the service with the common functionality required to behave as a good citizen of a microservice architecture, while the service performs the business-specific tasks for which it was written.</p>
+
+
+
+<h2 id="grey-matter-features-overview">Grey Matter features overview</h2>
+
+<ul><li><p>Automatic service discovery and load balancing for ephemeral service instances</p></li>
+<li><p>Support for mTLS, OAuth/OIDC, and JWT-based user authentication and authorization, with support for impersonation by NPE whitelist</p></li>
+<li><p>Automatic mTLS between meshed services (with FIPS 140-2 compliance mode), point-to-point RBAC policy enforcement (with SPIFFE-compliant ephemeral and auto-rotating service certificates for complete “zero-trust” coming)</p></li>
+<li><p>Telemetry, monitoring, statistics, SLOs, and mesh state visualization, access logging, deep auditing, and observables</p></li>
+<li><p>HTTP, HTTP/2, and gRPC proxying, (TCP, UDP, QUIC, and Kafka support coming)</p></li>
+<li><p>Retries, timeouts, circuit-breakers, canary deployments, A/B testing, etc.</p></li>
+<li><p>Active and passive health checks</p></li>
+<li><p>Compatibility and interoperability with many third-party tools and platforms</p>
+
+<ul>
+<li><p>OpenShift/Kubernetes, Consul, AWS, and flat-file for service discovery (with DC/OS Marathon in alpha)</p></li>
+<li><p>Istio and Consul integration in the “other-service-mesh” category</p></li>
+<li><p>Prometheus, Kafka/ElasticSearch/Kibana, CloudWatch, etc. for telemetry, observability, metrics aggregation, and event triggering</p></li>
+<li><p>Proxying to external services such as legacy APIs, external services, off-cloud services, and Lambda services</p></li></ul></li>
+<li><p>Multi-mesh self-interoperability with encryption, access control policy enforcement, data consistency, sharing, and communication between meshes</p></li>
+<li><p>Distributed, immutable, timestamped data storage with fine-grained access control, AES256 encryption for stored content, lineage tracking, file expiration, CDN features, and offline/rejoin/merge support with strong eventual consistency</p></li>
+</ul></div></body></html>
