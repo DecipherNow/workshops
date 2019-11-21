@@ -354,7 +354,7 @@ sudo kubectl apply -f ./control.yaml --validate=false
 
 ## Securing the mesh with role-based access control (RBAC)
 
-If you earlier succeeded at deploying a service into Grey Matter, you will have sent a `proxy.json` object to the mesh, with active proxy filters "gm.metrics" and "gm.observables", you can  `cat 2_fibonacci/proxy.json` to view the original object.
+If you earlier succeeded at deploying a service into Grey Matter, you will have sent a `proxy.json` object to the mesh, with active proxy filters "gm.metrics" and "gm.observables", you can  `cat 2_sidecar/proxy.json` to view the original object.
 
 We will be adding another proxy filter to enforce and configure RBAC rules for a service. Reusing our Fibonacci service from before, we use the Grey Matter CLI to edit our proxy config, and add an RBAC rule.
 
