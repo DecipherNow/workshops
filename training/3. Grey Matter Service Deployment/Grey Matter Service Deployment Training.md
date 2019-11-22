@@ -11,6 +11,8 @@ Until now we have only needed them on our local machine, to provide authenticati
 ```bash
 wget 'https://docs.google.com/uc?export=download&id=1YEyw5vEHrXhDpGuDk9RHQcQk5kFk38uz' -O quickstart.zip
 unzip quickstart.zip -d certs/
+sudo mkdir /etc/ssl/quickstart
+sudo mv certs/ /etc/ssl/quickstart/certs
 ```
 
 ## Download the latest Grey Matter CLI
@@ -46,9 +48,9 @@ export GREYMATTER_API_HOST="$HOST:$PORT"
 # 2 
 export GREYMATTER_API_PREFIX='/services/gm-control-api/latest'
 # 3
-export GREYMATTER_API_SSLCERT="$(pwd)/certs/quickstart.crt"
+export GREYMATTER_API_SSLCERT="/etc/ssl/quickstart/certs/quickstart.crt"
 # 4
-export GREYMATTER_API_SSLKEY="$(pwd)/certs/quickstart.key"
+export GREYMATTER_API_SSLKEY="/etc/ssl/quickstart/certs/quickstart.key"
 # 5
 export GREYMATTER_CONSOLE_LEVEL='debug'
 # 6
@@ -511,3 +513,63 @@ The edge proxy is likely not configured correctly to talk to the service, or the
 
 1. In the Kubernetes config, is the service's `spec.template.metadata.labels` `app: fibonacci` label intact?
 
+### Troubleshooting the greymatter cli configuration
+
+If you're using the cli (running any command that looks like `greymatter ...`), and you see an error, try running `greymatter` and check that your configuration (listed at the bottom) looks something like this:
+
+```bash
+Options currently configured from the Environment:
+
+GREYMATTER_API_HOST=12.345.6.78:31234
+GREYMATTER_API_INSECURE=true
+GREYMATTER_API_PREFIX=/services/gm-control-api/latest
+GREYMATTER_API_SSL=true
+GREYMATTER_API_SSLCERT=/etc/ssl/quickstart/certs/quickstart.crt
+GREYMATTER_API_SSLKEY=/etc/ssl/quickstart/certs/quickstart.key
+GREYMATTER_CONSOLE_LEVEL=debug
+```
+
+If you don't see any of the above variables, or some variables are missing, rerun the following:
+
+```bash
+export HOST=$( curl -s http://169.254.169.254/latest/meta-data/public-ipv4 )
+export PORT=$( sudo minikube service list | grep voyager-edge | grep -oP ':\K(\d+)' )
+export GREYMATTER_API_HOST="$HOST:$PORT"
+export GREYMATTER_API_PREFIX='/services/gm-control-api/latest'
+export GREYMATTER_API_SSLCERT="/etc/ssl/quickstart/certs/quickstart.crt"
+export GREYMATTER_API_SSLKEY="/etc/ssl/quickstart/certs/quickstart.key"
+export GREYMATTER_CONSOLE_LEVEL='debug'
+export GREYMATTER_API_SSL='true'
+export GREYMATTER_API_INSECURE='true'
+```
+
+Run `greymatter` again, if everything looks correct try your command again.  If you are still seeing errors, see below to troubleshoot your greymatter cli configuration.
+
+1. If the error you see looks like:
+
+    ```bash
+    list: could not successfully make request to https://:443/services/gm-control-api/latest/v1.0/cluster?filters=%5B%7B%22cluster_key%22%3A%22%22%2C%22name%22%3A%22%22%2C%22zone_key%22%3A%22%22%2C%22org_key%22%3A%22%22%7D%5D: Get https://:443/services/gm-control-api/latest/v1.0/cluster?filters=%5B%7B%22cluster_key%22%3A%22%22%2C%22name%22%3A%22%22%2C%22zone_key%22%3A%22%22%2C%22org_key%22%3A%22%22%7D%5D: dial tcp :443: connect: connection refused
+    ```
+
+    `GREYMATTER_API_HOST` is likely incorrectly configured. Run `echo $GREYMATTER_API_HOST`, then run `sudo minikube service list` and check that one of the ports listed in voyager-edge matches the port at the end of your variable.  If it doesn't match either voyager-edge port copy the first port and run `export PORT={your-voyager-edge-port}`.  If one of them does match, copy the other port and `export PORT={your-voyager-edge-port}`.  Then run the following,
+
+    ```bash
+    export HOST=$( curl -s http://169.254.169.254/latest/meta-data/public-ipv4 )
+    export GREYMATTER_API_HOST="$HOST:$PORT"
+    ```
+
+    Try your command again. If you still see the same error, check that `HOST` matches your ec2 public ip.
+
+2. If the error you are seeing looks like `stat /etc/ssl/quickstart/certs/quickstart.crt: no such file or directory`, verify that your quickstart certificates are in the `/etc/ssl/quickstart/certs` directory by running `ls -al /etc/ssl/quickstart/certs`, you should see:
+
+    ```bash
+    drwxrwxr-x 3 ubuntu ubuntu 4096 Nov 21 23:25 .
+    drwxr-xr-x 3 root   root   4096 Nov 21 23:20 ..
+    drwxrwxr-x 2 ubuntu ubuntu 4096 Oct 29 20:30 __MACOSX
+    -rw-r--r-- 1 ubuntu ubuntu 6590 Sep 26 18:57 quickstart.crt
+    -rw-r--r-- 1 ubuntu ubuntu 6115 Sep 26 18:57 quickstart.jks
+    -rw-r--r-- 1 ubuntu ubuntu 1679 Sep 26 18:57 quickstart.key
+    -rw-r--r-- 1 ubuntu ubuntu 6437 Sep 26 18:57 quickstart.p12
+    ```
+
+If you don't see this, or you see `No such file or directory`, re-download the quickstart certs at the top of this page and try again.
