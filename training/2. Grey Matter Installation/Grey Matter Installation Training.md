@@ -47,7 +47,9 @@ sudo apt install docker.io socat -y
 sudo snap install kubectl --channel=1.6/stable --classic
 
 # Helm
-sudo snap install helm --channel=stable --classic
+wget https://git.io/get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh --version v2.15.2
 
 # Minikube
 wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
@@ -109,9 +111,11 @@ wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greym
 wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greymatter-secrets.yaml
 ```
 
-- [greymatter.yaml](https://github.com/DecipherNow/helm-charts/blob/release-2.0/greymatter.yaml) contains many Grey Matter options you may want to adjust some day, but our change is small: Simply replace the value of `global.environment` with "kubernetes", as in this screenshot.
+> Note: The templates for these files change _very_ frequently, tracking updates to the Grey Matter helm charts. You should always get the latest version of these files, even if you already have older versions, and make your edits again.
 
-    ![greymatter.yaml changes](./1571943057437.png)
+- [greymatter.yaml](https://github.com/DecipherNow/helm-charts/blob/release-2.0/greymatter.yaml) contains many Grey Matter options you may want to adjust some day, but for our purposes you only need to change two things: Replace the value of `global.environment` with "kubernetes", and replace the value of `k8s_use_voyager_ingress` with "true" as in this screenshot:
+
+    ![greymatter.yaml changes](./SS-2019-11-26-16.16.08.png)
 
 - [greymatter-secrets.yaml](https://github.com/DecipherNow/helm-charts/blob/release-2.0/greymatter-secrets.yaml) contains secrets, passwords, and certificates. For our purposes here, just fill in your Docker registry credentials and AWS credentials, like so:
 
@@ -165,6 +169,10 @@ Now add an inbound TCP rule for that port to the security group for your EC2. Th
 ![Add port to security group](./1571948050321.png)
 
 The last bit of setup necessary is to add the Grey Matter quickstart certificate to your _local machine's_ browser/keychain. The exact steps differ between operating systems and browsers, but for Chrome you should be able to simply [download `quickstart.zip` from here](https://drive.google.com/open?id=1YEyw5vEHrXhDpGuDk9RHQcQk5kFk38uz), extract the certificates, and double-click on `quickstart.p12` to import it into your OS' keychain. The password is `password`.
+
+If you are certain that you have installed the certificate correctly, and yet Chrome/Chromium still won't let you open the page, especially on a Linux machine, there is a trick for bypassing the security check and getting to the page: Click anywhere on the warning page, and type (nowhere in particular) "thisisinsecure". This may work when all other attempts fail.
+
+For Firefox, you can import the certificate directly into the browser from the Certificates section of the settings, though a wide variety of combinations and browser versions tested seem to have trouble of some kind or other. Certificates are finicky.
 
 > NOTE: In actual production deployments, you would be replacing the entire PKI certificate setup (in greymatter-secrets.yaml) with a secure one. The provided quickstart certificates are for demonstration purposes only.
 

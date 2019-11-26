@@ -247,6 +247,32 @@ Make the necessary modifications to fib.yaml from the service deployment trainin
 
 > `TODO`: Include fib-consul.yaml in the zip.
 
+Finally, because we reinstalled Grey Matter, we will need to reapply the Grey Matter configuration for the Fibonacci service as well. This can be done quickly with the below block of commands.
+
+> Note: It's important that the Grey Matter CLI be configured correctly via environment variables before running this section. It may be worth checking with `greymatter list cluster` (you should see JSON output) that the CLI is still connected.
+
+```bash
+cd ~/fib
+
+# fib 
+greymatter create cluster < 2_sidecar/cluster.json
+greymatter create domain < 2_sidecar/domain.json
+greymatter create listener < 2_sidecar/listener.json
+greymatter create shared_rules < 2_sidecar/shared_rules.json
+greymatter create route < 2_sidecar/route.json
+greymatter create proxy < 2_sidecar/proxy.json
+
+# edge
+greymatter create cluster < 3_edge/fib-cluster.json
+greymatter create shared_rules < 3_edge/fib-shared_rules.json
+greymatter create route < 3_edge/fib-route.json
+greymatter create route < 3_edge/fib-route-2.json
+
+# catalog
+curl -XPOST https://$GREYMATTER_API_HOST/services/catalog/latest/clusters --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY -k -d "@4_catalog/entry.json"
+
+```
+
 
 ### Flat file
 
@@ -268,7 +294,7 @@ Change `GM_CONTROL_CMD` to "file", and add `GM_CONTROL_FILE_FILENAME` and `GM_CO
 ```yaml
       - GM_CONTROL_CMD=file
       - GM_CONTROL_FILE_FORMAT=yaml
-      - GM_CONTROL_FILE_FILENAME=/home/ubuntu/routes.yaml
+      - GM_CONTROL_FILE_FILENAME=/tmp/routes.yaml
 ```
 
 We will also do something a bit hacky for purposes of this training to get the flat file into the container: We'll alter Control's `command` so it waits 30 seconds for us to copy the file in.
@@ -283,10 +309,12 @@ as in this screenshot:
 
 ![Editing the command](./1573755947521.png)
 
+Also notice the `livenessProbe` block underneath. Because our 30-second delay causes Control to be unresponsive to the probe during that time, just delete that whole block (`livenessProbe` and everything indented underneath it). This will allow Control to wait for us without incident.
+
 
 Save and quit.
 
-Of course, before we actually deploy this configuration, we should actually _create_ that `routes.yaml` file. This could be somewhat tedious, since after all we're manually creating an index of all our services and their (dynamically assigned) IP addresses. However, in this case we can cheat and _generate_ `routes.yaml` from our previously configured working service discovery setup:
+Of course, before we actually deploy this configuration, we should actually _create_ that `routes.yaml` file. The whole point of this exercise is to introduce a flat-file service discovery table into Control. This could be somewhat tedious, since after all we're manually creating an index of all our services and their (dynamically assigned) IP addresses. However, in this case we can cheat and _generate_ `routes.yaml` from our previously configured working service discovery setup:
 
 ```bash
 greymatter list cluster | jq -r '.[] | select(.name!="service") | "- cluster: \(.cluster_key)@  instances:@  - host: \(.instances[0].host)@    port: \(.instances[0].port)@"' | tr '@' "\n" > routes.yaml
