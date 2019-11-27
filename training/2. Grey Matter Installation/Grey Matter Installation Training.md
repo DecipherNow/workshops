@@ -106,9 +106,9 @@ sudo kubectl get pods -n kube-system
 Next you will make yourself custom Helm configuration overrides using two Decipher templates. Run `wget` from your EC2 instance to get the templates:
 
 ```bash
-wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greymatter.yaml
+wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.1/greymatter.yaml
 
-wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greymatter-secrets.yaml
+wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.1/greymatter-secrets.yaml
 ```
 
 > Note: The templates for these files change _very_ frequently, tracking updates to the Grey Matter helm charts. You should always get the latest version of these files, even if you already have older versions, and make your edits again.

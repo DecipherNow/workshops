@@ -243,7 +243,7 @@ Here's `fib-consul.yaml`:
 # ...
 ```
 
-Make the necessary modifications to fib.yaml from the service deployment training, and apply with `sudo kubectl apply -f fib.yaml`.
+Make the necessary modifications to fib.yaml from the service deployment training, and apply with `sudo kubectl apply -f fib-consul.yaml`.
 
 > `TODO`: Include fib-consul.yaml in the zip.
 
