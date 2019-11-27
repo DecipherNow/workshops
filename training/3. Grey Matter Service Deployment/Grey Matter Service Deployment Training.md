@@ -69,7 +69,7 @@ These environment variables setup the CLI to
 6. Use `https` instead of `http` when making requests to the Control API service.
 7. Don't attempt to verify the server identity (for this tutorial).
 
-If you would like this configuration to persist, place it into your `~/.bash_profile`.
+Place the entirety of the above code block at the end of your `~/.profile`, since we want this configuration to persist. This is important both so that the `greymatter` command continues to function after a logout, and also so that you can open multiple SSH sessions without worrying about reconfiguring it.
 
 Verify your CLI connection with
 
