@@ -138,7 +138,7 @@ sudo helm repo update
 And now, the moment we've all been waiting for... We will use the two configuration override files we created earlier to install Grey Matter. We'll start with the `--dry-run` flag to check our configs _only_, then remove it to do the actual installation.
 
 ``` bash
-sudo helm install decipher/greymatter -f greymatter.yaml -f greymatter-secrets.yaml --name gm --version 2.0.4 --dry-run
+sudo helm install decipher/greymatter -f greymatter.yaml -f greymatter-secrets.yaml --name gm --version 2.1.5 --dry-run
 ```
 
 If you see no errors with `--dry-run`, and all you see is `NAME: gm`, then it's safe to remove `--dry-run` flag and re-run. Do so now.
