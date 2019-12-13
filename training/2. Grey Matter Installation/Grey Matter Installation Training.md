@@ -17,7 +17,8 @@ Begin by launching a
 
 1. the default Ubuntu Server AMI 
 2. into a t2.2xlarge
-3. with 32 GB storage (the default is 8).
+3. with 32 GB storage (the default is 8)
+4. and TCP port `30000` open in its security group.
 
 Leave all other parameters set to their defaults, including the default security group. (We will update it later once we know what port to use.)
 
@@ -152,23 +153,9 @@ watch sudo kubectl get pods
 
 Don't worry if you see `Error` and `CrashLoopBackOff`. This is normal, as each component of the system retries until its dependencies are available. `catalog-init` especially takes a while to execute without error.
 
-Once everything is either `Running` or `Completed`, Grey Matter is up and we have only to open the ingress port before we can connect from the outside. You can discover the ingress port with
+Once everything is either `Running` or `Completed`, Grey Matter is up and running.
 
-``` bash
-sudo minikube service list
-```
-
-which should result in something like the following. Copy the  first `voyager-edge` port so we can add it to the AWS Security Group for our EC2 instance. 
-
-![Find voyager-edge port](./1571947975787.png)
-
-> NOTE: This is the _port_ you'll need, but the IP address listed there is your Minikube-internal IP address, and won't work for access from the outside. Replace this with your EC2's public IP to access Grey Matter from the browser.
-
-Now add an inbound TCP rule for that port to the security group for your EC2. This is done in the AWS console.
-
-![Add port to security group](./1571948050321.png)
-
-The last bit of setup necessary is to add the Grey Matter quickstart certificate to your _local machine's_ browser/keychain. The exact steps differ between operating systems and browsers, but for Chrome you should be able to simply [download `quickstart.zip` from here](https://drive.google.com/open?id=1YEyw5vEHrXhDpGuDk9RHQcQk5kFk38uz), extract the certificates, and double-click on `quickstart.p12` to import it into your OS' keychain. The password is `password`.
+The last bit of setup necessary before we can see the dashboard is to add the Grey Matter quickstart certificate to your _local machine's_ browser/keychain. The exact steps differ between operating systems and browsers, but for Chrome you should be able to simply [download `quickstart.zip` from here](https://drive.google.com/open?id=1YEyw5vEHrXhDpGuDk9RHQcQk5kFk38uz), extract the certificates, and double-click on `quickstart.p12` to import it into your OS' keychain. The password is `password`.
 
 If you are certain that you have installed the certificate correctly, and yet Chrome/Chromium still won't let you open the page, especially on a Linux machine, there is a trick for bypassing the security check and getting to the page: Click anywhere on the warning page, and type (nowhere in particular) "thisisinsecure". This may work when all other attempts fail.
 
@@ -176,7 +163,7 @@ For Firefox, you can import the certificate directly into the browser from the C
 
 > NOTE: In actual production deployments, you would be replacing the entire PKI certificate setup (in greymatter-secrets.yaml) with a secure one. The provided quickstart certificates are for demonstration purposes only.
 
-Finally, navigate to `https://{your-ec2-public-ip}:{voyager-edge-port}`. Your browser will complain that the certificate is untrusted, but you may safely ignore that for now. Proceed with temporarily trusting the quickstart self-signed certificates. You should see your very own instances of the Grey Matter Intel 360 Dashboard, showing the seven core Grey Matter services.
+Finally, navigate to `https://{your-ec2-public-ip}:30000`. Your browser will complain that the certificate is untrusted, but you may safely ignore that for now. Proceed with temporarily trusting the quickstart self-signed certificates. You should see your very own instances of the Grey Matter Intel 360 Dashboard, showing the seven core Grey Matter services.
 
 ![Intel 360 Dashboard](./1571945172857.png)
 

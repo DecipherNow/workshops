@@ -39,7 +39,7 @@ We begin by configuring the CLI to connect to the Control API:
 ``` bash
 # A convenient trick for discovering your EC2's host and port
 export HOST=$( curl -s http://169.254.169.254/latest/meta-data/public-ipv4 )
-export PORT=$( sudo minikube service list | grep voyager-edge | grep -oP ':\K(\d+)' )
+export PORT=30000
 
 echo https://$HOST:$PORT
 
@@ -533,7 +533,7 @@ If you don't see any of the above variables, or some variables are missing, reru
 
 ```bash
 export HOST=$( curl -s http://169.254.169.254/latest/meta-data/public-ipv4 )
-export PORT=$( sudo minikube service list | grep voyager-edge | grep -oP ':\K(\d+)' )
+export PORT=30000
 export GREYMATTER_API_HOST="$HOST:$PORT"
 export GREYMATTER_API_PREFIX='/services/gm-control-api/latest'
 export GREYMATTER_API_SSLCERT="/etc/ssl/quickstart/certs/quickstart.crt"
@@ -551,7 +551,7 @@ Run `greymatter` again, if everything looks correct try your command again.  If 
     list: could not successfully make request to https://:443/services/gm-control-api/latest/v1.0/cluster?filters=%5B%7B%22cluster_key%22%3A%22%22%2C%22name%22%3A%22%22%2C%22zone_key%22%3A%22%22%2C%22org_key%22%3A%22%22%7D%5D: Get https://:443/services/gm-control-api/latest/v1.0/cluster?filters=%5B%7B%22cluster_key%22%3A%22%22%2C%22name%22%3A%22%22%2C%22zone_key%22%3A%22%22%2C%22org_key%22%3A%22%22%7D%5D: dial tcp :443: connect: connection refused
     ```
 
-    `GREYMATTER_API_HOST` is likely incorrectly configured. Run `echo $GREYMATTER_API_HOST`, then run `sudo minikube service list` and check that one of the ports listed in voyager-edge matches the port at the end of your variable.  If it doesn't match either voyager-edge port copy the first port and run `export PORT={your-voyager-edge-port}`.  If one of them does match, copy the other port and `export PORT={your-voyager-edge-port}`.  Then run the following,
+    `GREYMATTER_API_HOST` is likely incorrectly configured. Run `echo $GREYMATTER_API_HOST`, then run `sudo minikube service list` and check that the lower of the ports listed in voyager-edge matches the port at the end of your variable. (Newer versions of the helm charts pin the port to 30000, but older versions may have a different port.) If it doesn't match either voyager-edge port copy the first port and run `export PORT={your-voyager-edge-port}`. If one of them does match, try the other port. Then run the following,
 
     ```bash
     export HOST=$( curl -s http://169.254.169.254/latest/meta-data/public-ipv4 )
