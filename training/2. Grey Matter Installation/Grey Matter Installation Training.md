@@ -73,6 +73,7 @@ And initialize Helm by installing Tiller into our new Minikube installation:
 ``` bash
 sudo helm init
 ```
+> NOTE: As of Helm v3.0 there is no more Tiller and the client directories are initialised automatically when you start using helm. If you have an updated version of Helm, don't get stuck here wondering why you get errors. 
 
 Confirm that Tiller has actually started before moving on. `tiller-deploy` should be `1/1 Running`:
 
