@@ -1,19 +1,17 @@
 # Table of Contents
 
-- [Table of Contents](#table-of-contents)
-- [Multimesh](#multimesh)
-  - [Setup](#setup)
-  - [The players](#the-players)
-  - [Controlling the mesh](#controlling-the-mesh)
-  - [Configuring the mesh](#configuring-the-mesh)
-    - [Routing](#routing)
-  - [Multimesh Communication: Part I Service to Ingress Edge Setup](#multimesh-communication-part-i-service-to-ingress-edge-setup)
-    - [Configuring the cluster](#configuring-the-cluster)
-    - [Configuring the shared_rules](#configuring-the-sharedrules)
-    - [Configuring the routes](#configuring-the-routes)
-  - [Playing ping pong](#playing-ping-pong)
-  - [Multimesh Communication: Part II Egress Edge Proxy Setup](#multimesh-communication-part-ii-egress-edge-proxy-setup)
-  - [Authors](#authors)
+- [Setup](#setup)
+- [The players](#the-players)
+- [Controlling the mesh](#controlling-the-mesh)
+- [Configuring the mesh](#configuring-the-mesh)
+  - [Routing](#routing)
+- [Multimesh Communication: Part I Service to Ingress Edge Setup](#multimesh-communication-part-i-service-to-ingress-edge-setup)
+  - [Configuring the cluster](#configuring-the-cluster)
+  - [Configuring the shared_rules](#configuring-the-sharedrules)
+  - [Configuring the routes](#configuring-the-routes)
+- [Playing ping pong](#playing-ping-pong)
+- [Multimesh Communication: Part II Egress Edge Proxy Setup](#multimesh-communication-part-ii-egress-edge-proxy-setup)
+- [Authors](#authors)
 
 # Multimesh
 
@@ -34,7 +32,9 @@ ssh -i certificate.pem ubuntu@your-ec2-instance.compute-1.amazonaws.com
 ./setup.sh
 ```
 
-You'll be prompted for the username and password that you use to log in to [Nexus](https://nexus.production.deciphernow.com/). The setup will take 3-5min, so go ahead and read the next section while you wait. If the setup was successful, you should see `The mesh is ready at https://$PUBLIC_IP:30000 !` printed to the console.
+You'll be prompted for the username and password that you use to log in to [Nexus](https://nexus.production.deciphernow.com/). The setup script will also prompt you for a unique mesh name - choose something simple and identifiable such as "bobs-mesh". This will be used to identify your mesh when we play ping pong.
+
+The setup will take 3-5min, so go ahead and read the next section while you wait. If the setup was successful, you should see `The mesh is ready at https://$PUBLIC_IP:30000 !` printed to the console.
 
 ## The players
 
@@ -216,9 +216,9 @@ You and your partner should follow the logs for the Ping Pong service in your re
 kubectl logs deployment/ping-pong -c ping-pong -f
 ```
 
-Pick **one** person to initiate the game and run the following command in another tab.
+Pick **one** person to initiate the game. Run the following command and then visit the resulting URL in your browser.
 
-`curl -k --cert client.crt --key client.key https://$PUBLIC_IP:30000/services/ping-pong/latest/serve`
+`echo https://$PUBLIC_IP:30000/services/ping-pong/latest/serve`
 
 In your logs, you should see something like:
 
