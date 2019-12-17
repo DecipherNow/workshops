@@ -107,7 +107,7 @@ sudo helm del --purge gm
 sudo kubectl delete deployment/fibonacci
 ```
 
-Lets make a new directory where we will house the consul and flat file related content:
+Lets make a new directory where we will house the configuration related content:
 
 ```bash
 mkdir configuration
