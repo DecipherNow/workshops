@@ -247,7 +247,7 @@ Create a new deployment file, `fib-consul.yaml`.  Then copy below, paste it into
 
 ```bash
 touch 1_kubernetes/fib-consul.yaml
-vi 1_kubernetes/fib-consul.yaml
+nano 1_kubernetes/fib-consul.yaml
 ```
 
 ```yaml
