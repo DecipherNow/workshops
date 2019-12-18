@@ -4,15 +4,20 @@ clear
 
 read -p "Docker Email: " username
 read -sp "Docker Password: " password
-
 echo ""
+read -p "Enter a unique name for your mesh (e.g. my-super-cool-mesh): " meshid
 
+export MESH_ID=$meshid
 export DOCKER_USER=$username
 export DOCKER_PASSWORD=$password
 
 echo ""
 
+# Update the ping-pong deployment with the MESH_ID
+envsubst '${MESH_ID}' < template.yaml > deploy.yaml
+
 echo "🐳 Starting Minikube..."
+sudo minikube config set WantUpdateNotification false # avoids issue when sourcing `minikube ip` from .profile
 sudo minikube start --memory 6144 --cpus 4 --vm-driver=none &>/dev/null
 
 # Dependencies
@@ -30,9 +35,9 @@ curl -sSL https://raw.githubusercontent.com/appscode/voyager/10.0.0/hack/deploy/
 # Installation
 echo "🚀 Installing Grey Matter..."
 kubectl create secret docker-registry docker.secret --docker-server="docker.production.deciphernow.com" --docker-username=$DOCKER_USER --docker-password=$DOCKER_PASSWORD --docker-email=$DOCKER_USER &>/dev/null
-kubectl apply -f template.yaml --validate=false &>/dev/null
+kubectl apply -f deploy.yaml --validate=false &>/dev/null
 
-while [[ $(kubectl get pods --field-selector=status.phase=Running --output json | jq -j '.items | length') != "8" ]]; do
+while [[ $(kubectl get pods --field-selector=status.phase=Running --output json | jq -j '.items | length') -lt 8 ]]; do
     clear
     echo "✨ Waiting for pods ($(kubectl get pods --field-selector=status.phase=Running --output json | jq -j '.items | length')/8)"
     kubectl get pods | grep Running || true

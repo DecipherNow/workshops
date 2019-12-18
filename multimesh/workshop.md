@@ -1,19 +1,17 @@
 # Table of Contents
 
-- [Table of Contents](#table-of-contents)
-- [Multimesh](#multimesh)
-  - [Setup](#setup)
-  - [The players](#the-players)
-  - [Controlling the mesh](#controlling-the-mesh)
-  - [Configuring the mesh](#configuring-the-mesh)
-    - [Routing](#routing)
-  - [Multimesh Communication: Part I Service to Ingress Edge Setup](#multimesh-communication-part-i-service-to-ingress-edge-setup)
-    - [Configuring the cluster](#configuring-the-cluster)
-    - [Configuring the shared_rules](#configuring-the-sharedrules)
-    - [Configuring the routes](#configuring-the-routes)
-  - [Playing ping pong](#playing-ping-pong)
-  - [Multimesh Communication: Part II Egress Edge Proxy Setup](#multimesh-communication-part-ii-egress-edge-proxy-setup)
-  - [Authors](#authors)
+- [Setup](#setup)
+- [The players](#the-players)
+- [Controlling the mesh](#controlling-the-mesh)
+- [Configuring the mesh](#configuring-the-mesh)
+  - [Routing](#routing)
+- [Multimesh Communication: Part I Service to Ingress Edge Setup](#multimesh-communication-part-i-service-to-ingress-edge-setup)
+  - [Configuring the cluster](#configuring-the-cluster)
+  - [Configuring the shared_rules](#configuring-the-sharedrules)
+  - [Configuring the routes](#configuring-the-routes)
+- [Playing ping pong](#playing-ping-pong)
+- [Multimesh Communication: Part II Egress Edge Proxy Setup](#multimesh-communication-part-ii-egress-edge-proxy-setup)
+- [Authors](#authors)
 
 # Multimesh
 
@@ -34,7 +32,7 @@ ssh -i certificate.pem ubuntu@your-ec2-instance.compute-1.amazonaws.com
 ./setup.sh
 ```
 
-You'll be prompted for the username and password that you use to log in to [Nexus](https://nexus.production.deciphernow.com/). The setup will take 3-5min, so go ahead and read the next section while you wait. If the setup was successful, you should see `The mesh is ready at https://$PUBLIC_IP:30000 !` printed to the console.
+You'll be prompted for the username, password, and a unique string to identify your instance of the mesh. The username/password should be the credentials that you use to log in to [Nexus](https://nexus.production.deciphernow.com/). The setup will take 3-5min, so go ahead and read the next section while you wait. If the setup was successful, you should see `The mesh is ready at https://$PUBLIC_IP:30000 !` printed to the console.
 
 ## The players
 
@@ -210,15 +208,17 @@ The image below shows how we've configured the Grey Matter objects so far:
 
 At this point, check with your partner to see if they have successfully completed the steps above. If they have, we're ready to play!
 
-You and your partner should follow the logs for the Ping Pong service in your respective meshes:
+Pick **one** person to initiate the game. That person should run the following command and copy the resulting URL to their clipboard.
+
+`echo https://$PUBLIC_IP:30000/services/ping-pong/latest/serve` 
+
+Next, you and your partner should follow the logs for the Ping Pong service in your respective meshes:
 
 ```sh
 kubectl logs deployment/ping-pong -c ping-pong -f
 ```
 
-Pick **one** person to initiate the game and run the following command in another tab.
-
-`curl -k --cert client.crt --key client.key https://$PUBLIC_IP:30000/services/ping-pong/latest/serve`
+Once you're both following logs, the person who copied the URL can paste it into the browser to start the game.
 
 In your logs, you should see something like:
 
@@ -238,12 +238,30 @@ The second configuration uses an _egress_ edge proxy, which acts as a bridge bet
 
 There is already an `egress-edge` proxy deployed into your environment, we'll just need to tweak the configuration to make this work.
 
-Run the following and change the `shared_rules_key` from `mesh-2-shared-rules` to `shared-rules-egress-edge`. Save the file.
+Run the commands below and change the `shared_rules_key` from `mesh-2-shared-rules` to `shared-rules-egress-edge`. Save the file. This should be done for both routes.
 
 ```sh
 # Edit both routes to use the`shared-rules-egress-edge` shared_rules key
 greymatter edit route route-ping-pong-to-mesh-2-slash
 greymatter edit route route-ping-pong-to-mesh-2
+```
+
+```diff
+{
+  "route_key": "route-ping-pong-to-mesh-2-slash",
+  "domain_key": "domain-ping-pong",
+  "zone_key": "zone-default-zone",
+  "path": "/mesh2",
+  "prefix_rewrite": "/mesh2/",
+  "redirects": null,
+-  "shared_rules_key": "mesh-2-shared-rules",
++  "shared_rules_key": "shared-rules-egress-edge",
+  "rules": null,
+  "response_data": {},
+  "cohort_seed": null,
+  "retry_policy": null,
+  "checksum": "6a39224cd046bea59b2f8351068bd468f1aac15024d16ba6e9769474bf1b126a"
+}
 ```
 
 Next, create a route for the egress cluster <-> mesh #2:
@@ -280,9 +298,9 @@ This validates that the egress-edge is looking for a cluster `mesh2` and has fou
 kubectl logs deployment/ping-pong -c ping-pong -f
 ```
 
-In another tab, initiate the game just like we did before:
+Initiate the game just like we did before by hitting the same URL in the browser:
 
-`curl -k --cert client.crt --key client.key https://$PUBLIC_IP:30000/services/ping-pong/latest/serve`
+`echo https://$PUBLIC_IP:30000/services/ping-pong/latest/serve` 
 
 The game should look exactly as it did in the previous setup. Once someone wins, hit `ctrl+c` to exit the logs. Now take a look at the logs for our egress-edge proxy:
 

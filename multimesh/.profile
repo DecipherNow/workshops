@@ -28,7 +28,7 @@ fi
 
 alias kubectl='sudo kubectl'
 alias minikube='sudo minikube'
-alias destroy='kubectl delete -f template.yaml && kubectl delete secret docker.secret'
+alias destroy='kubectl delete -f deploy.yaml && kubectl delete secret docker.secret'
 
 export PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
 export GREYMATTER_CONSOLE_LEVEL=debug
