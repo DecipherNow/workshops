@@ -107,19 +107,10 @@ sudo helm del --purge gm
 sudo kubectl delete deployment/fibonacci
 ```
 
-Lets make a new directory where we will house the configuration related content:
+Then we want to install Consul, using their official Helm charts, modified to allow a single-node installation. This can be done by cloning their repository,
 
 ```bash
 cd /home/ubuntu
-mkdir configuration
-cd configuration/
-```
-
-Then we want to install Consul, using their official Helm charts, modified to allow a single-node installation. This can be done by cloning their repository,
-
-
-
-```bash
 git clone https://github.com/hashicorp/consul-helm.git
 ```
 
@@ -137,33 +128,19 @@ sudo helm install ./consul-helm --name consul
 
 > Note: These instructions will assume the Helm deployment is named `consul`, as specified above. If you change this value in your own installations, be sure to update the references to it below.
 
-First, grab `greymatter.yaml` and `greymatter-secrets.yaml` that correspond to the new setup.
-
-```bash
-wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greymatter.yaml
-
-wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greymatter-secrets.yaml
-```
-
-Once again, modify the `greymatter-secrets.yaml` file with your Docker registry credentials and AWS credentials, the top of the file should look like:
-
-![greymatter-secrets.yaml changes](../2.&#32;Grey&#32;Matter&#32;Installation/1571943196937.png/1571943196937.png)
-
 Now we will modify the Grey Matter installation to use Consul for service discovery. Start by copying your `greymatter.yaml` to `greymatter-consul.yaml`,
 
 ```bash
 cp greymatter.yaml greymatter-consul.yaml
 ```
 
-and then make the following three changes to the `greymatter-consul.yaml` file:
-
-1. Change `global.environment` from openshift to `kubernetes`, and add the line `k8s_use_voyager_ingress: true` beneath it.
+and then make the following two changes to the `greymatter-consul.yaml` file, `nano greymatter-consul.yaml`:
   
-2. Change `global.consul.enabled` to "true", and `global.consul.host` to "consul-consul-server", as in the following screenshot.
+1. Change `global.consul.enabled` to "true", and `global.consul.host` to "consul-consul-server", as in the following screenshot.
 
     ![greymatter-consul.yaml edits](./1573585132908.png)
 
-3. Then skip down to `control.control.envvars`, and comment out the following environment variables to Grey Matter Control, to tell it some details about the Consul server.
+2. Then skip down to `control.control.envvars`, and comment out the following environment variables to Grey Matter Control, to tell it some details about the Consul server.
 
     ```yaml
     gm_control_cmd:
@@ -195,6 +172,8 @@ sudo kubectl get pods
 
 Now you can install Grey Matter with our custom configuration for Consul.
 
+> `TODO`: UPDATe the install command for new (not broken) helm version!!
+
 ``` bash
 sudo helm install decipher/greymatter -f greymatter-consul.yaml -f greymatter-secrets.yaml --name gm --version 2.0.4 --dry-run
 ```
@@ -208,13 +187,7 @@ sudo kubectl get pods -w
 # Ctrl-C to escape
 ```
 
-Then, find your new port with:
-
-```bash
-sudo minikube service list
-```
-
-copy one of the two ports listed for `voyager-edge`, add that port to the security group in EC2, and navigate to the site at `https://{your-ec2-ip}:{copied-port}` in your browser. It should look identical to the earlier deployment.
+Once everything is running, you should once again be able to view the dashboard at <https://{your-ex2-ip}:30000> as before.
 
 To confirm that we are, in fact, using Consul service discovery, we can do `sudo kubectl describe deployment/control` to show that `GM_CONTROL_CMD` is set to `consul`. More satisfyingly, let's look at the Consul UI to confirm that Grey Matter services have registered with it.
 
@@ -240,21 +213,10 @@ Deploying a service into the mesh is only a little different with Consul as the 
 
 Your services will also need a Consul agent container in each of their pods to make the actual announcement. To launch the Fibonacci service into this environment, you will need the same configuration as before, plus the following additional container under `spec.template.spec.containers`, as well as the following extra volumes for Consul under `spec.template.spec`.
 
-Redownload the fibonacci service directory
+Now we will create a new deployment file, `fib-consul.yaml`, based off of the one we used to deploy the fibonacci service in the previous section.  Copy the deployment below, paste it into the new file, save a quit.
 
 ```bash
-cd /home/ubuntu/configuration
-
-wget 'https://docs.google.com/uc?export=download&id=10s3emQdJvpLsOa0bJM4W_u66f4OxVOCY' -O fib.zip
-
-unzip fib.zip
-
 cd fib/
-```
-
-Create a new deployment file, `fib-consul.yaml`.  Then copy below, paste it into the new file, save a quit.
-
-```bash
 touch 1_kubernetes/fib-consul.yaml
 nano 1_kubernetes/fib-consul.yaml
 ```
@@ -333,50 +295,17 @@ sudo kubectl apply -f 1_kubernetes/fib-consul.yaml
 
 > `TODO`: Include fib-consul.yaml in the zip.
 
-Take a look at the consul ui still running at <http://localhost:8500/>, you should now see the fibonacci service has announced itself to consul.  At this time, it should be failing it's health check.  This is because the mesh has not been configured to connect to the fibonacci service yet.
+Take a look at the consul ui still running at <http://localhost:8500/>, you should now see the fibonacci service has announced itself to consul. 
 
-So now, finally, because we reinstalled Grey Matter, we will need to reapply the Grey Matter configuration for the Fibonacci service as well. This can be done quickly with the below block of commands.
+When we configured the mesh for fibonacci service in the last section, [Grey Matter Service Deployment Training](../3.&#32;Grey&#32;Matter&#32;Service&#32;Deployment/Grey&#32;Matter&#32;Service&#32;Deployment&#32;Training.md), our mesh configurations that we sent using the cli were saved in a persistent volume claim for the Grey Matter Control Api.  This means that now that we have deployed fibonacci, it should automatically be configured into the mesh, and we should be able to see `Alive` at <https://{your-ec2-ip}:30000/services/fibonacci/1.0/>.  The only thing we have to do is re-register the fibonacci service with catalog:
 
-> Note: It's important that the Grey Matter CLI be configured correctly via environment variables before running this section. Run the following to reconfigure it:
-
-```bash
-export HOST=$( curl -s http://169.254.169.254/latest/meta-data/public-ipv4 )
-export PORT=$( sudo minikube service list | grep voyager-edge | grep -oP ':\K(\d+)' )
-
-export GREYMATTER_API_HOST="$HOST:$PORT"
-export GREYMATTER_API_PREFIX='/services/gm-control-api/latest'
-export GREYMATTER_API_SSLCERT="/etc/ssl/quickstart/certs/quickstart.crt"
-export GREYMATTER_API_SSLKEY="/etc/ssl/quickstart/certs/quickstart.key"
-export GREYMATTER_CONSOLE_LEVEL='debug'
-export GREYMATTER_API_SSL='true'
-export GREYMATTER_API_INSECURE='true'
-
-```
-
-Now, reconfigure the mesh for the Fibonacci service using consul.
+> Note: If the endpoint is unavailable and you see a failing health check for fibonacci in the consul UI, especially if you havent followed these instructions all the way through from Installation, you probably need to resend the mesh configurations. Follow the instructions from troubleshooting [here](#reconfigure_fibonacci) to reconfigure.
 
 ```bash
- cd /home/ubuntu/configuration/fib/
-# fib 
-greymatter create cluster < 2_sidecar/cluster.json
-greymatter create domain < 2_sidecar/domain.json
-greymatter create listener < 2_sidecar/listener.json
-greymatter create shared_rules < 2_sidecar/shared_rules.json
-greymatter create route < 2_sidecar/route.json
-greymatter create proxy < 2_sidecar/proxy.json
-
-# edge
-greymatter create cluster < 3_edge/fib-cluster.json
-greymatter create shared_rules < 3_edge/fib-shared_rules.json
-greymatter create route < 3_edge/fib-route.json
-greymatter create route < 3_edge/fib-route-2.json
-
-# catalog
 curl -XPOST https://$GREYMATTER_API_HOST/services/catalog/latest/clusters --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY -k -d "@4_catalog/entry.json"
-
 ```
 
-Once control has discovered the Fibonacci services instance, it should appear as an up service on the dashboard, and should now be passing its health check in the consul ui.  You have now successfully deployed Grey Matter to use Consul for service discovery.
+Once control has discovered the Fibonacci services instance, it should appear as an up service on the dashboard.  You have now successfully deployed Grey Matter to use Consul for service discovery.
 
 ### Flat file
 
@@ -1050,3 +979,25 @@ Since we're not beginning at the beginnning, here are a few comments on the setu
 
 1. First, we will all need to SSH into the EC2s for the workshop. They're different EC2s than the one we setup earlier in that they contain a subset of the core Grey Matter services we would normally install, plus a few extra services pre-prepared to demonstrate multi-mesh concepts. Unless they're provided for you as part of training, start a new server using the AMI [`ami-010b6e54be2bc11c6`](https://console.aws.amazon.com/ec2/home?region=us-east-1#Images:visibility=public-images;imageId=010b6e54be2bc11c6;sort=name). Launch one of these into a `t2.large` instance, with SSH port 22, and port 30000 open in the security group, with defaults otherwise.
 2. SSH into this instance and run `./setup.sh`, which will prompt you for Decipher LDAP credentials for our Docker registry, and set up the EC2. Now you're ready to play ball.
+
+## Troubleshooting
+
+### Reconfigure Fibonacci
+
+If at any point you find that the fibonacci endpoint is unavailable when you believe it shouldn't be, try to run `greymatter get cluster edge-fibonacci-cluster`.  If nothing comes up, try resending the following to the greymatter cli to configure the fibonacci service:
+
+```bash
+cd /home/ubuntu/fib/
+
+greymatter create cluster < 2_sidecar/cluster.json
+greymatter create domain < 2_sidecar/domain.json
+greymatter create listener < 2_sidecar/listener.json
+greymatter create shared_rules < 2_sidecar/shared_rules.json
+greymatter create route < 2_sidecar/route.json
+greymatter create proxy < 2_sidecar/proxy.json
+
+greymatter create cluster < 3_edge/fib-cluster.json
+greymatter create shared_rules < 3_edge/fib-shared_rules.json
+greymatter create route < 3_edge/fib-route.json
+greymatter create route < 3_edge/fib-route-2.json
+```
