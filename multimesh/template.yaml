@@ -2131,7 +2131,7 @@ spec:
             - name: PORT
               value: "3000"
             - name: MESH_ID
-              value: "Mesh 1"
+              value: "$MESH_ID"
             - name: USE_TLS
               value: "true"
             - name: SERVER_CERT
