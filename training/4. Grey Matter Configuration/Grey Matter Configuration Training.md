@@ -110,6 +110,7 @@ sudo kubectl delete deployment/fibonacci
 Lets make a new directory where we will house the configuration related content:
 
 ```bash
+cd /home/ubuntu
 mkdir configuration
 cd configuration/
 ```
@@ -136,7 +137,7 @@ sudo helm install ./consul-helm --name consul
 
 > Note: These instructions will assume the Helm deployment is named `consul`, as specified above. If you change this value in your own installations, be sure to update the references to it below.
 
-Firs, grab `greymatter.yaml` and `greymatter-secrets.yaml` that correspond to the new setup.
+First, grab `greymatter.yaml` and `greymatter-secrets.yaml` that correspond to the new setup.
 
 ```bash
 wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greymatter.yaml
@@ -146,7 +147,7 @@ wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.0/greym
 
 Once again, modify the `greymatter-secrets.yaml` file with your Docker registry credentials and AWS credentials, the top of the file should look like:
 
-![greymatter-secrets.yaml changes](./1571943196937.png)
+![greymatter-secrets.yaml changes](../2.&#32;Grey&#32;Matter&#32;Installation/1571943196937.png/1571943196937.png)
 
 Now we will modify the Grey Matter installation to use Consul for service discovery. Start by copying your `greymatter.yaml` to `greymatter-consul.yaml`,
 
@@ -154,7 +155,7 @@ Now we will modify the Grey Matter installation to use Consul for service discov
 cp greymatter.yaml greymatter-consul.yaml
 ```
 
-and then make the following two changes to the `greymatter-consul.yaml` file:
+and then make the following three changes to the `greymatter-consul.yaml` file:
 
 1. Change `global.environment` from openshift to `kubernetes`, and add the line `k8s_use_voyager_ingress: true` beneath it.
   
@@ -207,7 +208,13 @@ sudo kubectl get pods -w
 # Ctrl-C to escape
 ```
 
-Then you can find your new port with `sudo minikube service list`, add that port to the security group in EC2, and navigate to the site in your browser. It should look identical to the earlier deployment.
+Then, find your new port with:
+
+```bash
+sudo minikube service list
+```
+
+copy one of the two ports listed for `voyager-edge`, add that port to the security group in EC2, and navigate to the site at `https://{your-ec2-ip}:{copied-port}` in your browser. It should look identical to the earlier deployment.
 
 To confirm that we are, in fact, using Consul service discovery, we can do `sudo kubectl describe deployment/control` to show that `GM_CONTROL_CMD` is set to `consul`. More satisfyingly, let's look at the Consul UI to confirm that Grey Matter services have registered with it.
 
@@ -236,6 +243,8 @@ Your services will also need a Consul agent container in each of their pods to m
 Redownload the fibonacci service directory
 
 ```bash
+cd /home/ubuntu/configuration
+
 wget 'https://docs.google.com/uc?export=download&id=10s3emQdJvpLsOa0bJM4W_u66f4OxVOCY' -O fib.zip
 
 unzip fib.zip
@@ -367,7 +376,7 @@ curl -XPOST https://$GREYMATTER_API_HOST/services/catalog/latest/clusters --cert
 
 ```
 
-Once control has discovered the Fibonacci services instance, it should appear as an up service on the dashboard, and should now be passing its health checkin the consul ui.
+Once control has discovered the Fibonacci services instance, it should appear as an up service on the dashboard, and should now be passing its health check in the consul ui.  You have now successfully deployed Grey Matter to use Consul for service discovery.
 
 ### Flat file
 
@@ -376,7 +385,7 @@ Finally, as the ultimate fallback solution, Grey Matter supports service discove
 This time, we will not need to tear down all of Grey Matter, because the changes necessary are isolated to Grey Matter Control. We will dump Control's configuration, edit it, and redeploy it.
 
 ```bash
-cd ..
+cd /home/ubuntu/configuration
 sudo kubectl get deployment control -o yaml > control.yaml
 nano control.yaml  # see below for the lines to change
 ```
@@ -558,7 +567,7 @@ Now make the following changes:
 
 > Note: As you can tell from the filter name, this is in fact an unmodified Envoy filter we are enabling. As an aside, several Envoy filters are supported, and eventually they will all be available.
 
-2. In the `proxy_filters` object, we will configure the filter. This will specify the rules to allow access to the Fibonacci service. Complex configurations can be tricky, but we will start with a simple config that should deny us from having access to the service. Replace `""envoy_rbac": null` with the following:
+2. In the `proxy_filters` object, we will configure the filter. This will specify the rules to allow access to the Fibonacci service. Complex configurations can be tricky, but we will start with a simple config that should deny us from having access to the service. Replace `"envoy_rbac": null` with the following:
 
 ```diff
 "envoy_rbac": {
@@ -636,7 +645,7 @@ To do this, we will add a policy giving `GET` permission to users with with the 
 
 Save and quit again.  Give the new configuration a few minutes to take effect.
 
-To test the new policies, we can hit `https://{your-ec2-public-ip}:{port}/services/fibonacci/1.0/` in the browser and we should see `Alive` once the RBAC filter has taken affect. This is because we are making a `GET` request to the service. Now, try the following:
+To test the new policies, we can hit `https://{your-ec2-public-ip}:{port}/services/fibonacci/1.0/` in the browser and we should see `Alive` once the RBAC filter has taken affect. This is because we are making a `GET` request to the service with our certificate user_dn, `CN=quickstart,OU=Engineering,O=Decipher Technology Studios,=Alexandria,=Virginia,C=US`. Now, try the following:
 
 ```diff
 # 1)

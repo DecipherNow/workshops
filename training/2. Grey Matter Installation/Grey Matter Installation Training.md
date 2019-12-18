@@ -114,7 +114,7 @@ wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.1/greym
 
 > Note: The templates for these files change _very_ frequently, tracking updates to the Grey Matter helm charts. You should always get the latest version of these files, even if you already have older versions, and make your edits again.
 
-- [greymatter.yaml](https://github.com/DecipherNow/helm-charts/blob/release-2.0/greymatter.yaml) contains many Grey Matter options you may want to adjust some day, but for our purposes you only need to change two things: Replace the value of `global.environment` with "kubernetes":
+- [greymatter.yaml](https://github.com/DecipherNow/helm-charts/blob/release-2.0/greymatter.yaml) contains many Grey Matter options you may want to adjust some day, but for our purposes you only need to change one thing: Replace the value of `global.environment` with "kubernetes":
 
     ![greymatter.yaml changes](./SS-2019-11-26-16.16.08.png)
 
