@@ -1,6 +1,6 @@
 {
   "shared_rules_key": "mesh-2-shared-rules",
-  "name": "$MESH_ID",
+  "name": "mesh2",
   "zone_key": "zone-default-zone",
   "default": {
     "light": [

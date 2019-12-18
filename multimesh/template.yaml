@@ -2115,8 +2115,8 @@ spec:
     spec:
       containers:
         - name: ping-pong
-          image: "dgoldstein1/passthrough:latest"
-          imagePullPolicy: IfNotPresent
+          image: "kaitmore/pingpong-service:latest"
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           resources:
@@ -2131,7 +2131,7 @@ spec:
             - name: PORT
               value: "3000"
             - name: MESH_ID
-              value: "Mesh 1"
+              value: "$MESH_ID"
             - name: USE_TLS
               value: "true"
             - name: SERVER_CERT
@@ -2249,6 +2249,7 @@ data:
       "gzip_enabled": false,
       "cors_config": null,
       "aliases": null,
+      "custom_headers": [{ "key": "MESH_ID", "value": "$MESH_ID" }],
       "ssl_config": {
           "cipher_filter": "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH",
           "protocols": [

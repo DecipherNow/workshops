@@ -1,7 +1,7 @@
 {
   "cluster_key": "cluster-mesh-2",
   "zone_key": "zone-default-zone",
-  "name": "$MESH_ID",
+  "name": "mesh2",
   "instances": [
     {
       "host": "x.x.x.x",
