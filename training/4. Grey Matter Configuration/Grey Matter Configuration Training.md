@@ -299,7 +299,7 @@ Take a look at the consul ui still running at <http://localhost:8500/>, you shou
 
 When we configured the mesh for fibonacci service in the last section, [Grey Matter Service Deployment Training](../3.&#32;Grey&#32;Matter&#32;Service&#32;Deployment/Grey&#32;Matter&#32;Service&#32;Deployment&#32;Training.md), our mesh configurations that we sent using the cli were saved in a persistent volume claim for the Grey Matter Control Api.  This means that now that we have deployed fibonacci, it should automatically be configured into the mesh, and we should be able to see `Alive` at <https://{your-ec2-ip}:30000/services/fibonacci/1.0/>.  The only thing we have to do is re-register the fibonacci service with catalog:
 
-> Note: If the endpoint is unavailable and you see a failing health check for fibonacci in the consul UI, especially if you havent followed these instructions all the way through from Installation, you probably need to resend the mesh configurations. Follow the instructions from troubleshooting [here](#reconfigure_fibonacci) to reconfigure.
+> Note: If the endpoint is unavailable and you see a failing health check for fibonacci in the consul UI, especially if you havent followed these instructions all the way through from Installation, you probably need to resend the mesh configurations. Follow the instructions from troubleshooting [here](#reconfigure-fibonacci) to reconfigure.
 
 ```bash
 curl -XPOST https://$GREYMATTER_API_HOST/services/catalog/latest/clusters --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY -k -d "@4_catalog/entry.json"
@@ -314,7 +314,7 @@ Finally, as the ultimate fallback solution, Grey Matter supports service discove
 This time, we will not need to tear down all of Grey Matter, because the changes necessary are isolated to Grey Matter Control. We will dump Control's configuration, edit it, and redeploy it.
 
 ```bash
-cd /home/ubuntu/configuration
+cd /home/ubuntu
 sudo kubectl get deployment control -o yaml > control.yaml
 nano control.yaml  # see below for the lines to change
 ```
@@ -323,29 +323,28 @@ The lines to change are down in the environment variable configuration section o
 
 ![Edit Control deployment](./1573677890981.png)
 
-**Change `GM_CONTROL_CMD` to "file"**, and add `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` like so:
+1. **Change `GM_CONTROL_CMD` to "file"**, and add `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` like so:
 
-```yaml
-        - name: GM_CONTROL_FILE_FORMAT
-          value: yaml
-        - name: GM_CONTROL_FILE_FILENAME
-          value: /tmp/routes.yaml
-```
+    ```yaml
+            - name: GM_CONTROL_FILE_FORMAT
+              value: yaml
+            - name: GM_CONTROL_FILE_FILENAME
+              value: /tmp/routes.yaml
+    ```
 
-We will also do something a bit hacky for purposes of this training to get the flat file into the container: We'll alter Control's `command` so it waits 30 seconds for us to copy the file in.
+2. We will also do something a bit hacky for purposes of this training to get the flat file into the container: We'll alter Control's `command` so it waits 30 seconds for us to copy the     file in.
 
-So while in `control.yaml`, add this `command` line to the control container
+    Also add this `command` line to the control container
 
-```yaml
-command: ["/bin/sh", "-c", "sleep 30; /usr/local/bin/gm-control.sh"]
-```
+    ```yaml
+    command: ["/bin/sh", "-c", "sleep 30; /usr/local/bin/gm-control.sh"]
+    ```
 
-as in this screenshot:
+    as in this screenshot:
 
-![Editing the command](./1573755947521.png)
+    ![Editing the command](./1573755947521.png)
 
-Also notice the `livenessProbe` block underneath. Because our 30-second delay causes Control to be unresponsive to the probe during that time, just delete that whole block (`livenessProbe` and everything indented underneath it). This will allow Control to wait for us without incident.
-
+    Also notice the `livenessProbe` block underneath. Because our 30-second delay causes Control to be unresponsive to the probe during that time, just delete that whole block (`livenessProbe` and everything indented underneath it). This will allow Control to wait for us without incident.
 
 Save and quit.
 
@@ -418,11 +417,12 @@ It's a good idea to revert back to either dynamic service discovery mechanisms b
 # Edit control.yaml, then redeploy with
 sudo kubectl delete deployment control
 sudo kubectl apply -f ./control.yaml --validate=false
+
 ```
 
 ## Securing the mesh with role-based access control (RBAC)
 
-Go back into the fib directory, `cd /home/ubuntu/configuration/fib`.
+Go back into the fib directory, `cd /home/ubuntu/fib`.
 
 If you earlier succeeded at deploying a service into Grey Matter, you will have sent a `proxy.json` object to the mesh, with active proxy filters "gm.metrics" and "gm.observables", you can  `cat 2_sidecar/proxy.json` to view the original object.
 
@@ -530,7 +530,7 @@ To test that the RBAC filter has been enabled, hit  `https://{your-ec2-public-ip
 To make sure that users with `user_dn: cn=not.you` in fact _do_ have access to the service, we will take advantage of the current setup with unrestricted impersonation to run the following.
 
 ```bash
-curl -k --header "user_dn: cn=not.you" --cert /etc/ssl/quickstart/certs/quickstart.crt --key /etc/ssl/quickstart/certs/quickstart.key https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
+curl -k --header "user_dn: cn=not.you" --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
 ```
 
 The response should be `Alive`. So if we impersonate the "not you" user, we are allowed access.
@@ -578,13 +578,13 @@ To test the new policies, we can hit `https://{your-ec2-public-ip}:{port}/servic
 
 ```diff
 # 1)
-curl -k --cert /etc/ssl/quickstart/certs/quickstart.crt --key /etc/ssl/quickstart/certs/quickstart.key https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
+curl -k --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
 
 # 2)
-curl -k -X PUT --cert /etc/ssl/quickstart/certs/quickstart.crt --key /etc/ssl/quickstart/certs/quickstart.key https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
+curl -k -X PUT --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
 
 # 3)
-curl -k -X PUT  --header "user_dn: cn=not.you" --cert /etc/ssl/quickstart/certs/quickstart.crt --key /etc/ssl/quickstart/certs/quickstart.key https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
+curl -k -X PUT  --header "user_dn: cn=not.you" --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY https://$GREYMATTER_API_HOST/services/fibonacci/1.0/
 ```
 
 1. The first request should have responded with `Alive`, as this is a `GET` request to the service, and our certificate dn, `CN=quickstart,OU=Engineering,O=Decipher Technology Studios,=Alexandria,=Virginia,C=US`, is passed in the request from our certificate.
@@ -741,7 +741,7 @@ and add the impersonation filter by altering the `active_proxy_filters` to inclu
   ],
   "proxy_filters": {
     "gm_impersonation": {
-      "servers": "CN=quickstart,OU=Engineering,O=Decipher Technology Studios,=Alexandria,=Virginia,C=US|C=US,ST=Virginia,L=Alexandria,O=Decipher Technology Studios,OU=Engineering,CN=*.greymatter.svc.cluster.local"
+      "servers": "CN=quickstart,OU=Engineering,O=Decipher Technology Studios,=Alexandria,=Virginia,C=US|C=US,ST=Virginia,L=Alexandria,O=Decipher Technology Studios,OU=Engineering,CN=edge"
     },
   ...    
   }
@@ -763,7 +763,7 @@ and watch those logs as you make requests from your browser.
 First let's make a normal request, passing no `USER_DN` header, to our Fibonacci service at `https://{your-ec2-public-ip}:{port}/services/fibonacci/1.0/fibonacci/32`.
 
 ```bash
-curl -k --cert /etc/ssl/quickstart/certs/quickstart.crt --key /etc/ssl/quickstart/certs/quickstart.key https://$GREYMATTER_API_HOST/services/fibonacci/1.0/fibonacci/32
+curl -k --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY https://$GREYMATTER_API_HOST/services/fibonacci/1.0/fibonacci/32
 ```
 
 If the configuration has had time to apply, (the logs would have shown filters reloading) then we should see the following in the logs for the request:
@@ -779,7 +779,7 @@ Now set the header `USER_DN: CN=localuser,OU=Engineering,O=Decipher Technology S
 
 > Note: Again, with `curl` this would be
   ```
-curl -k --header 'user_dn: CN=localuser,OU=Engineering,O=Decipher Technology Studios,=Alexandria,=Virginia,C=US' --cert /etc/ssl/quickstart/certs/quickstart.crt --key /etc/ssl/quickstart/certs/quickstart.key https://$GREYMATTER_API_HOST/services/fibonacci/1.0/fibonacci/32
+curl -k --header 'user_dn: CN=localuser,OU=Engineering,O=Decipher Technology Studios,=Alexandria,=Virginia,C=US' --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY https://$GREYMATTER_API_HOST/services/fibonacci/1.0/fibonacci/32
   ```
 
 This results in the following message in the logs:
