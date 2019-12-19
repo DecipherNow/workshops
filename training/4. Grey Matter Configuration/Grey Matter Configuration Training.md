@@ -721,10 +721,9 @@ sudo kubectl get pods
 
 Now you can install Grey Matter with our custom configuration for Consul.
 
-> `TODO`: UPDATe the install command for new (not broken) helm version!!
 
 ``` bash
-sudo helm install decipher/greymatter -f greymatter-consul.yaml -f greymatter-secrets.yaml --name gm --version 2.0.4 --dry-run
+sudo helm install decipher/greymatter -f greymatter-consul.yaml -f greymatter-secrets.yaml --name gm --version 2.1.6 --dry-run
 ```
 
 If this runs successfully, (all you see is `Name: gm`) then you can remove the `--dry-run` and re-run the command to proceed. Do so now.
