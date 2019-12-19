@@ -10,6 +10,7 @@ Until now we have only needed them on our local machine, to provide authenticati
 
 ```bash
 wget 'https://docs.google.com/uc?export=download&id=1YEyw5vEHrXhDpGuDk9RHQcQk5kFk38uz' -O quickstart.zip
+sudo apt install unzip
 unzip quickstart.zip -d certs/
 sudo mkdir /etc/ssl/quickstart
 sudo mv certs/ /etc/ssl/quickstart/certs
@@ -17,11 +18,11 @@ sudo mv certs/ /etc/ssl/quickstart/certs
 
 ## Download the latest Grey Matter CLI
 
-We will be configuring the mesh with the latest Grey Matter CLI, [available after authentication from Decipher's Nexus repository](https://nexus.production.deciphernow.com/#browse/browse:raw-hosted:greymatter%2Fgm-cli). Download the latest available version, and untar the package. At time of writing, the latest version is `v1.1.0`, which will be used in the below example.
+We will be configuring the mesh with the latest Grey Matter CLI, [available after authentication from Decipher's Nexus repository](https://nexus.production.deciphernow.com/#browse/browse:raw-hosted:greymatter%2Fgm-cli). Note: the link will say `Not Found`, sign in using the same docker nexus credentials in the top right corner.  Download the latest available version, and untar the package. At time of writing, the latest version is `v1.1.0`, which will be used in the below example.
 
-The simplest way to get the `greymatter` CLI binary onto your server is to upload it from your local machine after downloading it from Decipher's Nexus repository. For Ubuntu you'll want `greymatter-v1.1.0/greymatter.linux` of course. 
+The simplest way to get the `greymatter` CLI binary onto your server is to upload it from your local machine after downloading it from Decipher's Nexus repository. For Ubuntu you'll want `greymatter-v1.1.0/greymatter.linux` of course. One way to do this is to unzip greymatter-v1.1.0.tar.gz in whatever directory you downloaded it in, and run `scp -i ~/.ssh/minikube-aws.pem greymatter-v1.1.0/greymatter.linux ubuntu@{your-ec2-ip}:~/` using the same minikube-aws.pem file you used to ssh into your instance.
 
-Upload this file to the server. Then make it executable, and move it into your path while renaming it to `greymatter`:
+Upload this file to the server. Inside your EC2, make it executable, and move it into your path while renaming it to `greymatter`:
 
 ``` bash
 chmod +x greymatter.linux
