@@ -46,7 +46,7 @@ echo https://$HOST:$PORT
 
 # 1
 export GREYMATTER_API_HOST="$HOST:$PORT"
-# 2 
+# 2
 export GREYMATTER_API_PREFIX='/services/gm-control-api/latest'
 # 3
 export GREYMATTER_API_SSLCERT="/etc/ssl/quickstart/certs/quickstart.crt"
@@ -72,7 +72,7 @@ These environment variables setup the CLI to
 
 Place the entirety of the above code block at the end of your `~/.profile`, since we want this configuration to persist. This is important both so that the `greymatter` command continues to function after a logout, and also so that you can open multiple SSH sessions without worrying about reconfiguring it.
 
-Verify your CLI connection with
+Verify your CLI connection with:
 
 ``` bash
 greymatter list cluster
@@ -123,7 +123,7 @@ spec:
         ports:
         - containerPort: 8080
       - name: sidecar
-        image: docker.production.deciphernow.com/deciphernow/gm-proxy:latest        
+        image: docker.production.deciphernow.com/deciphernow/gm-proxy:latest
         imagePullPolicy: Always
         ports:
         - name: proxy
@@ -149,9 +149,9 @@ Notice that the service itself is listening on port 8080, and the sidecar is lis
 
 Another salient feature is that the sidecar is largely unconfigured. It is given only enough information to know that it should contact the control plane to request configuration (`PROXY_DYNAMIC`), where to do that (`XDS_HOST` and `XDS_PORT`), and what configuration to request (that of `XDS_CLUSTER`).
 
-> Note: If you are deploying your service into a non-default namespace, `control.default.svc.cluster.local` should instead read `control.YOURNAMESPACE.svc.cluster.local`.
+> Note: The `XDS_HOST` value must point to the namespace where the control plane aka `gm-control` has been deployed to. If the namespace is something other than `default` then you will need to change `control.default.svc.cluster.local` to `control.YOURNAMESPACE.svc.cluster.local`.
 
-Apply this configuration with
+Apply this configuration with:
 
 ``` bash
 sudo kubectl apply -f 1_kubernetes/fib.yaml
@@ -168,6 +168,7 @@ At this point, the service and the sidecar are both launched with ports open, bu
 There are six configuration objects necessary to configure the sidecar, represented by six JSON files (in `fib/2_sidecar/` in the zip). We will go through each of them as we deploy them.
 
 > Note: A successful response to each `greymatter` CLI request will closely resemble the object sent, with three caveats:
+
   1. The response omits misspelled key names, which can be a source of confusion, so check carefully that all keys sent were received as expected.
   2. It may omit settings that match the defaults, depending on the command. E.g., `edit` omits defaults.
   3. It contains a checksum, which when using `edit` must not be changed (because it's used by Grey Matter Control to enforce isolation of updates).
@@ -194,7 +195,7 @@ Here is the contents of `cluster.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create cluster < 2_sidecar/cluster.json
@@ -215,7 +216,7 @@ Here is the contents of `domain.json`, a minimal configuration to create the 'fi
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create domain < 2_sidecar/domain.json
@@ -241,7 +242,7 @@ Here is the contents of `listener.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create listener < 2_sidecar/listener.json
@@ -271,7 +272,7 @@ Here is the contents of `shared_rules.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create shared_rules < 2_sidecar/shared_rules.json
@@ -293,7 +294,7 @@ Here is the contents of `route.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create route < 2_sidecar/route.json
@@ -338,7 +339,7 @@ Here is the contents of `proxy.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create proxy < 2_sidecar/proxy.json
@@ -351,7 +352,6 @@ It would be understandable if, by this point, you were lost in the sea of config
 ![How the objects link together](./Project.png)
 
 > Note: All configuration above uses the same zone_key, which provides a logical scope to the configuration. Zones represent logical mesh deployments, and may be used to support multi-tenancy. This particular zone key was setup for us when the helm charts for Grey Matter were created. You can list the configured zones with `greymatter list zone`.
-
 > `TODO`: Write-up overview script.
 
 ### Grey Matter edge configuration
@@ -377,7 +377,7 @@ Here is the contents of `fib-cluster.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create cluster < 3_edge/fib-cluster.json
@@ -404,7 +404,7 @@ Here is the contents of `fib-shared_rules.json`:
 
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create shared_rules < 3_edge/fib-shared_rules.json
@@ -425,7 +425,7 @@ Here is the contents of `fib-route.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create route < 3_edge/fib-route.json
@@ -446,7 +446,7 @@ Here is the contents of `fib-route-2.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create route < 3_edge/fib-route-2.json
@@ -459,8 +459,6 @@ See the Troubleshooting section below if for any other reason your service seems
 ### Catalog service configuration
 
 If your service responds to your call, there is yet one final step remaining: Your Catalog service entry. The Grey Matter Intel 360 Dashboard depends on the Catalog service for information on each running service, and we will make an entry for our service now by POSTing to the Catalog service's `/clusters` endpoint.
-
-In the same terminal where you set the environment variables for the Grey Matter CLI, in the `fib/` directory, run this to create an entry in the Catalog service. This POSTs the contents of 
 
 ``` json
 {
@@ -482,7 +480,7 @@ In the same terminal where you set the environment variables for the Grey Matter
 }
 ```
 
-Send it to the Catalog service with
+In the same terminal where you set the environment variables for the Grey Matter CLI, in the `fib/` directory, run the below command to create the entry in the Catalog service.
 
 ``` bash
 curl -XPOST https://$GREYMATTER_API_HOST/services/catalog/latest/clusters --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY -k -d "@4_catalog/entry.json"
