@@ -480,7 +480,7 @@ If your service responds to your call, there is yet one final step remaining: Yo
 }
 ```
 
-In the same terminal where you set the environment variables for the Grey Matter CLI, in the `fib/` directory, run the below command create the entry in the Catalog service.
+In the same terminal where you set the environment variables for the Grey Matter CLI, in the `fib/` directory, run the below command to create the entry in the Catalog service.
 
 ``` bash
 curl -XPOST https://$GREYMATTER_API_HOST/services/catalog/latest/clusters --cert $GREYMATTER_API_SSLCERT --key $GREYMATTER_API_SSLKEY -k -d "@4_catalog/entry.json"
