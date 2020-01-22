@@ -72,7 +72,7 @@ These environment variables setup the CLI to
 
 Place the entirety of the above code block at the end of your `~/.profile`, since we want this configuration to persist. This is important both so that the `greymatter` command continues to function after a logout, and also so that you can open multiple SSH sessions without worrying about reconfiguring it.
 
-Verify your CLI connection with
+Verify your CLI connection with:
 
 ``` bash
 greymatter list cluster
@@ -149,7 +149,9 @@ Notice that the service itself is listening on port 8080, and the sidecar is lis
 
 Another salient feature is that the sidecar is largely unconfigured. It is given only enough information to know that it should contact the control plane to request configuration (`PROXY_DYNAMIC`), where to do that (`XDS_HOST` and `XDS_PORT`), and what configuration to request (that of `XDS_CLUSTER`).
 
-Apply this configuration with
+> Note: The `XDS_HOST` value must point to the namespace where the control plane aka `gm-control` has been deployed to. If the namespace is something other than `default` then you will need to change `control.default.svc.cluster.local` to `control.YOURNAMESPACE.svc.cluster.local`.
+
+Apply this configuration with:
 
 ``` bash
 sudo kubectl apply -f 1_kubernetes/fib.yaml
@@ -193,7 +195,7 @@ Here is the contents of `cluster.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create cluster < 2_sidecar/cluster.json
@@ -214,7 +216,7 @@ Here is the contents of `domain.json`, a minimal configuration to create the 'fi
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create domain < 2_sidecar/domain.json
@@ -240,7 +242,7 @@ Here is the contents of `listener.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create listener < 2_sidecar/listener.json
@@ -270,7 +272,7 @@ Here is the contents of `shared_rules.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create shared_rules < 2_sidecar/shared_rules.json
@@ -292,7 +294,7 @@ Here is the contents of `route.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create route < 2_sidecar/route.json
@@ -337,7 +339,7 @@ Here is the contents of `proxy.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create proxy < 2_sidecar/proxy.json
@@ -375,7 +377,7 @@ Here is the contents of `fib-cluster.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create cluster < 3_edge/fib-cluster.json
@@ -402,7 +404,7 @@ Here is the contents of `fib-shared_rules.json`:
 
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create shared_rules < 3_edge/fib-shared_rules.json
@@ -423,7 +425,7 @@ Here is the contents of `fib-route.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create route < 3_edge/fib-route.json
@@ -444,7 +446,7 @@ Here is the contents of `fib-route-2.json`:
 }
 ```
 
-We send it to Grey Matter with
+We send it to Grey Matter with:
 
 ``` bash
 greymatter create route < 3_edge/fib-route-2.json
