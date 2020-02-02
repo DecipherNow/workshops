@@ -48,9 +48,7 @@ sudo apt install docker.io socat -y
 sudo snap install kubectl --channel=1.6/stable --classic
 
 # Helm
-wget https://git.io/get_helm.sh
-chmod 700 get_helm.sh
-./get_helm.sh --version v2.15.2
+sudo snap install helm --classic --channel=2.16
 
 # Minikube
 wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
@@ -63,7 +61,7 @@ sudo mv minikube-linux-amd64 /usr/local/bin/minikube
 Now we start Minikube with enough CPU and memory allocated for a full installation of Grey Matter:
 
 ``` bash
-sudo minikube start --vm-driver=none --memory 16384 --cpus 6 --kubernetes-version='v1.15.5'
+sudo minikube start --vm-driver=none --kubernetes-version='v1.17.0'
 ```
 
 > NOTE: If anything goes wrong, it should be safe to do `sudo minikube delete` to return you to the step right before Minikube was started, ready to retry.
@@ -87,7 +85,7 @@ sudo helm repo add appscode https://charts.appscode.com/stable/
 
 sudo helm repo update
 
-sudo helm install appscode/voyager --name voyager-operator --version 10.0.0 \
+sudo helm install appscode/voyager --name voyager-operator --version 12.0.0-rc.1 \
   --namespace kube-system \
   --set cloudProvider=minikube \
   --set enableAnalytics=false \
@@ -107,9 +105,9 @@ sudo kubectl get pods -n kube-system
 Next you will make yourself custom Helm configuration overrides using two Decipher templates. Run `wget` from your EC2 instance to get the templates:
 
 ```bash
-wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.1/greymatter.yaml
+wget https://raw.githubusercontent.com/DecipherNow/helm-charts/2.1.8/greymatter.yaml
 
-wget https://raw.githubusercontent.com/DecipherNow/helm-charts/release-2.1/greymatter-secrets.yaml
+wget https://raw.githubusercontent.com/DecipherNow/helm-charts/2.1.8/greymatter-secrets.yaml
 ```
 
 > Note: The templates for these files change _very_ frequently, tracking updates to the Grey Matter helm charts. You should always get the latest version of these files, even if you already have older versions, and make your edits again.
@@ -126,7 +124,9 @@ Save your changes to these two files and proceed.
 
 ### Decipher Helm repository
 
-We're now going to add another Helm repository, this time for Grey Matter itself, and use it to install the latest release. You will need your Docker registry username and password again.
+We're now going to add another Helm repository, this time for Grey Matter itself, and use it to install the latest release.
+
+You will need your Docker registry username and password again.
 
 ``` bash
 sudo helm repo add decipher https://nexus.production.deciphernow.com/repository/helm-hosted --username 'YOUR USERNAME' --password 'YOUR PASSWORD'
@@ -139,7 +139,7 @@ sudo helm repo update
 And now, the moment we've all been waiting for... We will use the two configuration override files we created earlier to install Grey Matter. We'll start with the `--dry-run` flag to check our configs _only_, then remove it to do the actual installation.
 
 ``` bash
-sudo helm install decipher/greymatter -f greymatter.yaml -f greymatter-secrets.yaml --name gm --version 2.1.6 --dry-run
+sudo helm install decipher/greymatter -f greymatter.yaml -f greymatter-secrets.yaml --name gm --version 2.1.8 --dry-run
 ```
 
 If you see no errors with `--dry-run`, and all you see is `NAME: gm`, then it's safe to remove `--dry-run` flag and re-run. Do so now.
@@ -176,8 +176,7 @@ Since the Grey Matter Integrity project defaults to the quickstart user certific
 ``` bash
 sudo docker login docker.production.deciphernow.com
 
-sudo docker run --rm -e URL={your-ec2-public-ip}:{port} \
-docker.production.deciphernow.com/deciphernow/gm-integrity
+sudo docker run --rm -e URL={your-ec2-public-ip}:30000 docker.production.deciphernow.com/deciphernow/gm-integrity
 ```
 
 ## Troubleshooting a deployment
