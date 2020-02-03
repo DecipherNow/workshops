@@ -872,42 +872,7 @@ Once control has discovered the Fibonacci services instance, it should appear as
 
 Finally, as the ultimate fallback solution, Grey Matter supports service discovery using a flat file. This can be used to manually register services, or as an interface to some custom service discovery solution, since Control will hot-reload updates to this file.
 
-This time, we will not need to tear down all of Grey Matter, because the changes necessary are isolated to Grey Matter Control. We will dump Control's configuration, edit it, and redeploy it.
-
-```bash
-cd /home/ubuntu
-sudo kubectl get deployment control -o yaml > control.yaml
-nano control.yaml  # see below for the lines to change
-```
-
-The lines to change are down in the environment variable configuration section of Control's container. If you followed the Consul instructions earlier, yours may look something like this:
-
-![Edit Control deployment](./1573677890981.png)
-
-1. **Change `GM_CONTROL_CMD` to "file"**, and add `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` like so:
-
-    ```yaml
-            - name: GM_CONTROL_FILE_FORMAT
-              value: yaml
-            - name: GM_CONTROL_FILE_FILENAME
-              value: /tmp/routes.yaml
-    ```
-
-2. We will also do something a bit hacky for purposes of this training to get the flat file into the container: We'll alter Control's `command` so it waits 30 seconds for us to copy the     file in.
-
-    Also add this `command` line to the control container
-
-    ```yaml
-    command: ["/bin/sh", "-c", "sleep 30; /usr/local/bin/gm-control.sh"]
-    ```
-
-    as in this screenshot:
-
-    ![Editing the command](./1573755947521.png)
-
-    Also notice the `livenessProbe` block underneath. Because our 30-second delay causes Control to be unresponsive to the probe during that time, just delete that whole block (`livenessProbe` and everything indented underneath it). This will allow Control to wait for us without incident.
-
-Save and quit.
+This time, we will not need to tear down all of Grey Matter, because the changes necessary are isolated to Grey Matter Control. We will create a new Control configuration, this time setting the discovery type to `"file"`, telling it where to find the file, and mounting a volume that will contain the actual file. Then we will redeploy Control using the new configuration.
 
 Of course, before we actually deploy this configuration, we should actually _create_ that `routes.yaml` file. The whole point of this exercise is to introduce a flat-file service discovery table into Control. This could be somewhat tedious, since after all we're manually creating an index of all our services and their (dynamically assigned) IP addresses. However, in this case we can cheat and _generate_ `routes.yaml` from our previously configured working service discovery setup:
 
@@ -942,35 +907,210 @@ greymatter list cluster | jq -r '.[] | select(.name!="service") | "- cluster: \(
 ...
 ```
 
-Next, we will destroy the existing Control deployment, replace it with out updated one, and copy `routes.yaml` into the container.
+Now, we will create the configmap to pass to the Control deployment below called `routes-config` containing the routes information that we are passing into the control deployment:
+
+```bash
+sudo kubectl create configmap routes-config --from-file=routes.yaml
+```
+
+Now we will create the new deployment file, to take a look at the old control configuration to compare, run:
+
+```bash
+cd /home/ubuntu
+sudo kubectl get deployment control -o yaml > control.yaml
+cat control.yaml
+```
+
+If you followed the Consul instructions earlier, yours may look something like this:
+
+![Edit Control deployment](./1573677890981.png)
+
+We won't use this deployment file, but instead we will create a new control-file.yaml file (below), and in it contains the following changes:
+
+1. Environment varialbe `GM_CONTROL_CM` will be set to `"file"` to set the discovery type to flat file. Then, the variables `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` will be added,  telling GM Control what the name of the file to use is (in this case `/tmp/routes.yaml`), and what type of file it is (in this case `yaml`).
+
+  Take a look at the first set of commented arrows (`#<-`) in the env section below to see this change.
+
+2. A volume mount actually adding the file `routes.yaml`.  Now we will actually mount the volume pointing at the configMap that we just created, which contains the `routes.yaml` information. For more information on using configMaps, see the [kubernetes docs](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/). Since we told Control to look for the file at `/tmp/routes.yaml` in `GM_CONTROL_FILE_FILENAME` above, we want to mount the `routes.yaml` file contained in `routes-config` configMap we created to the Control container at `/tmp/`.  Thus, we will add the volume and volumeMount to the control config notes with (`#<-`) in the file below.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: "2020-02-03T15:51:51Z"
+  generation: 1
+  name: control
+  namespace: default
+  resourceVersion: "14806"
+  selfLink: /apis/apps/v1/namespaces/default/deployments/control
+  uid: 46288091-4613-4c8e-b45e-d2cd0b5f59ab
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: control
+      deployment: control
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: control
+        deployment: control
+        run: control
+    spec:
+      containers:
+      - env:
+        - name: GM_CONTROL_API_HOST
+          value: gm-control-api:5555
+        - name: GM_CONTROL_API_KEY
+          value: xxx
+        - name: GM_CONTROL_API_SSL
+          value: "false"
+        - name: GM_CONTROL_API_ZONE_NAME
+          value: zone-default-zone
+        - name: GM_CONTROL_CMD                   # <- sets discovery type to file
+          value: file                            # <-
+        - name: GM_CONTROL_FILE_FORMAT           # <- tells control what type of file
+          value: yaml                            # <-
+        - name: GM_CONTROL_FILE_FILENAME         # <- sets the location/name of the file
+          value: /tmp/routes.yaml                # <-
+        - name: GM_CONTROL_CONSOLE_LEVEL
+          value: info
+        - name: GM_CONTROL_CONSUL_DC
+          value: dc1
+        - name: GM_CONTROL_CONSUL_HOSTPORT
+          value: consul-consul-server:8500
+        - name: GM_CONTROL_KUBERNETES_CLUSTER_LABEL
+          value: app
+        - name: GM_CONTROL_KUBERNETES_NAMESPACES
+          value: default,data-only
+        - name: GM_CONTROL_KUBERNETES_PORT_NAME
+          value: proxy
+        - name: GM_CONTROL_XDS_ADS_ENABLED
+          value: "true"
+        - name: GM_CONTROL_XDS_RESOLVE_DNS
+          value: "true"
+        - name: GM_CONTROL_API_INSECURE
+          value: "true"
+        - name: GM_CONTROL_API_SSL
+          value: "true"
+        - name: GM_CONTROL_API_SSLCERT
+          value: /service-certs/server.crt
+        - name: GM_CONTROL_API_SSLKEY
+          value: /service-certs/server.key
+        image: docker.production.deciphernow.com/deciphernow/gm-control:1.1.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: grpc
+          timeoutSeconds: 1
+        name: control
+        ports:
+        - containerPort: 50000
+          name: grpc
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /service-certs
+          name: control-api-certs
+        - mountPath: /tmp/                        # <- mounts the volume named routes at location /tmp/
+          name: routes                            # <-
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: docker.secret
+      initContainers:
+      - env:
+        - name: NAMESPACE
+          value: default
+        - name: SERVICE
+          value: gm-control-api
+        - name: POST_DELAY
+          value: "10"
+        image: deciphernow/k8s-waiter:latest
+        imagePullPolicy: Always
+        name: ensure-gm-control-api
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: control-sa
+      serviceAccountName: control-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: control-api-certs
+        secret:
+          defaultMode: 511
+          secretName: control-to-control-api-certs
+      - name: routes                                # <- finds the configMap named "routes-config" and
+        configMap:                                  # <- adds it as a volume called "routes" to the deployment
+          name: routes-config                       # <-
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2020-02-03T15:52:35Z"
+    lastUpdateTime: "2020-02-03T15:52:35Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2020-02-03T15:51:51Z"
+    lastUpdateTime: "2020-02-03T15:52:35Z"
+    message: ReplicaSet "control-8455ccf5dc" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 1
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1
+```
+
+Now, copy the entire block above, run the next command and paste the whole thing in:
+
+```bash
+nano control-file.yaml
+```
+
+Save and quit.
+
+Next, we will destroy the existing Control deployment"
 
 ```bash
 sudo kubectl delete deployment control
 ```
 
-After we deploy, we will have 30 seconds to copy in `routes.yaml`.  Deploy, get pods and copy the control pod id, and then run the last command replacing `{control-pod-id}` with what you copied.
-
-> Note: If you don't copy the file in within 30 seconds, the logs will include `file: watch file error: no such file or directory`, and the pod will restart, giving you another chance.
+And create the new one:
 
 ```bash
 sudo kubectl apply -f ./control.yaml --validate=false
-sudo kubectl get pods
-```
-
-Copy the pod-id for control, and:
-
-```bash
-# use the pod name to copy routes.yaml into the container
-sudo kubectl cp ./routes.yaml {control-pod-id}:/tmp/routes.yaml
 ```
 
 > Note: `--validate=false` on the deployment seems to be necessary some times and not others. This is likely a bug in Kubernetes that a valid deployment configuration sometimes fails to validate.
 
-> Note: The pod itself takes a few seconds to initialize, so if the `cp` fails complaining that the pod doesn't exist, just keep retrying until it does.
+`sudo kubectl describe deployment/control | grep Replicas:` should now show the following and you should then be running a service mesh using flat-file service discovery!
 
-If you weren't too slow, `sudo kubectl logs deployment/control` should shortly be spitting out details about Control's workings, and you should then be running a service mesh using flat-file service discovery!
+```bash
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+```
 
-> Note: The method of delaying Control's startup and copying in the file is an expedient for training purposes, and not how you would actually do this for a real, multi-user deployment. In that case you would want to create a config map with `routes.yaml` to mount it into the container as part of Control's deployment.
+If you check the instances for any cluster in `greymatter list cluster`, they should now show the information from the `routes.yaml` file.
 
 To revert back to the original discovery method with kuberenetes, change `GM_CONTROL_CMD` in your `control.yaml` back to `kubernetes`, and re-do the `kubectl delete` and `apply` steps to reapply it.
 
