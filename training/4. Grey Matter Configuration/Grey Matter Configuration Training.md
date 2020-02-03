@@ -1097,7 +1097,7 @@ sudo kubectl delete deployment control
 And create the new one:
 
 ```bash
-sudo kubectl apply -f ./control.yaml --validate=false
+sudo kubectl apply -f ./control-file.yaml --validate=false
 ```
 
 > Note: `--validate=false` on the deployment seems to be necessary some times and not others. This is likely a bug in Kubernetes that a valid deployment configuration sometimes fails to validate.
