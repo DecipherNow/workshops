@@ -113,8 +113,8 @@ wget https://raw.githubusercontent.com/DecipherNow/helm-charts/2.1.8/greymatter-
 > Note: The templates for these files change _very_ frequently, tracking updates to the Grey Matter helm charts. You should always get the latest version of these files, even if you already have older versions, and make your edits again.
 
 - [greymatter.yaml](https://github.com/DecipherNow/helm-charts/blob/release-2.0/greymatter.yaml) contains many Grey Matter options you may want to adjust some day, but for our purposes you only need to change one thing: Replace the value of `global.environment` with "kubernetes":
-
-    ![greymatter.yaml changes](./SS-2019-11-26-16.16.08.png)
+    
+    ![greymatter.yaml changes](./greymatter-config-screenshot.png)
 
 - [greymatter-secrets.yaml](https://github.com/DecipherNow/helm-charts/blob/release-2.0/greymatter-secrets.yaml) contains secrets, passwords, and certificates. For our purposes here, just fill in your Docker registry credentials and AWS credentials, like so:
 
