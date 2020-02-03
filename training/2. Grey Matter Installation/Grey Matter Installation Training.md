@@ -45,7 +45,7 @@ sudo apt update
 sudo apt install docker.io socat -y
 
 # Kubectl
-sudo snap install kubectl --channel=1.6/stable --classic
+sudo snap install kubectl --classic
 
 # Helm
 sudo snap install helm --classic --channel=2.16

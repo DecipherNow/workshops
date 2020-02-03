@@ -11,6 +11,7 @@ Until now we have only needed them on our local machine, to provide authenticati
 ```bash
 wget 'https://docs.google.com/uc?export=download&id=1YEyw5vEHrXhDpGuDk9RHQcQk5kFk38uz' -O quickstart.zip
 sudo apt install unzip
+
 unzip quickstart.zip -d certs/
 sudo mkdir /etc/ssl/quickstart
 sudo mv certs/ /etc/ssl/quickstart/certs
@@ -29,8 +30,10 @@ wget --user 'YOUR-USERNAME' --password 'YOUR-PASSWORD' https://nexus.production.
 Then, still inside your EC2, make `greymatter.linux` executable, and move it into your path while renaming it to `greymatter`:
 
 ``` bash
-chmod +x greymatter.linux
-sudo mv greymatter.linux /usr/local/bin/greymatter
+mkdir cli
+tar -xvf greymatter-v1.1.0.tar.gz -C cli/
+chmod +x cli/greymatter.linux
+sudo mv cli/greymatter.linux /usr/local/bin/greymatter
 ```
 
 > Note: It is absolutely necessary that the binary be _renamed_ and put into your path for it to work. This is a known issue, and will be fixed in future versions.

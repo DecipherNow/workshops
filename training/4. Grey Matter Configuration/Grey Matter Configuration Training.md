@@ -227,6 +227,8 @@ spec:
           value: control.default.svc.cluster.local
         - name: XDS_PORT
           value: "50000"
+        - name: XDS_ZONE
+          value: zone-default-zone
         volumeMounts:                         # <-
         - name: sidecar-certs                 # <-
           mountPath: /etc/proxy/tls/sidecar/  # <-
@@ -251,6 +253,8 @@ Apply by deleting the old configuration and re-applying using the above file:
 sudo kubectl delete deployment/fibonacci
 sudo kubectl apply -f 1_kubernetes/fib-certs.yaml
 ```
+
+> Note: If `sudo kubectl delete deployment/fibonacci` panics with a nil pointer dereference, upgrade to a newer version of kubectl and try again: `sudo snap remove kubectl` `sudo snap install kubectl --classic`.
 
 > Note: We're still not all the way to production-quality security, because we only provided one certificate for all the services, but this will demonstrate the concept. You will want to replace each of those with a unique certificates in production, or in the near future, enable auto-rotating SPIFFE-compliant internal certificates with SPIRE.
 
@@ -806,6 +810,12 @@ spec:
           value: control.default.svc.cluster.local
         - name: XDS_PORT
           value: "50000"
+        - name: XDS_ZONE
+          value: zone-default-zone
+        volumeMounts:
+        - name: sidecar-certs
+          mountPath: /etc/proxy/tls/sidecar/
+          readOnly: true
       - name: consul
         image: consul:1.5.0
         imagePullPolicy: IfNotPresent
@@ -824,13 +834,16 @@ spec:
           name: data-consul
         - mountPath: /consul/config
           name: config-consul
-      imagePullSecrets:
-      - name: docker.secret
       volumes:
+      - name: sidecar-certs
+        secret:
+          secretName: sidecar-certs
       - name: data-consul
         emptyDir: {}
       - name: config-consul
         emptyDir: {}
+      imagePullSecrets:
+      - name: docker.secret
 ```
 
 If you run `cat 1_kubernetes/fib-consul.yaml` you should see exactly as above.
@@ -1000,3 +1013,5 @@ greymatter create shared_rules < 3_edge/fib-shared_rules.json
 greymatter create route < 3_edge/fib-route.json
 greymatter create route < 3_edge/fib-route-2.json
 ```
+
+
