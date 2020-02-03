@@ -907,13 +907,13 @@ greymatter list cluster | jq -r '.[] | select(.name!="service") | "- cluster: \(
 ...
 ```
 
-Now, we will create the configmap to pass to the Control deployment below called `routes-config` containing the routes information that we are passing into the control deployment:
+Now, we will create the configMap to pass to the Control deployment below called `routes-config` containing the routes information that we are trying to pass:
 
 ```bash
 sudo kubectl create configmap routes-config --from-file=routes.yaml
 ```
 
-Now we will create the new deployment file, to take a look at the old control configuration to compare, run:
+Now we will create the new deployment file. To take a look at the old control configuration to compare, run:
 
 ```bash
 cd /home/ubuntu
@@ -927,11 +927,9 @@ If you followed the Consul instructions earlier, yours may look something like t
 
 We won't use this deployment file, but instead we will create a new control-file.yaml file (below), and in it contains the following changes:
 
-1. Environment varialbe `GM_CONTROL_CM` will be set to `"file"` to set the discovery type to flat file. Then, the variables `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` will be added,  telling GM Control what the name of the file to use is (in this case `/tmp/routes.yaml`), and what type of file it is (in this case `yaml`).
+1. Environment varialbe `GM_CONTROL_CM` will be set to `"file"` to set the discovery type to flat file. Then, the variables `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` will be added,  telling GM Control what the name of the file to use is (in this case `/tmp/routes.yaml`), and what type of file it is (in this case `yaml`). Take a look at the first set of commented arrows (`#<-`) in the env section below to see this change.
 
-  Take a look at the first set of commented arrows (`#<-`) in the env section below to see this change.
-
-2. A volume mount actually adding the file `routes.yaml`.  Now we will actually mount the volume pointing at the configMap that we just created, which contains the `routes.yaml` information. For more information on using configMaps, see the [kubernetes docs](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/). Since we told Control to look for the file at `/tmp/routes.yaml` in `GM_CONTROL_FILE_FILENAME` above, we want to mount the `routes.yaml` file contained in `routes-config` configMap we created to the Control container at `/tmp/`.  Thus, we will add the volume and volumeMount to the control config notes with (`#<-`) in the file below.
+2. A volume mount actually adding the file `routes.yaml`.  We will mount the volume pointing at the configMap that we just created, which contains the `routes.yaml` information. For more information on using configMaps, see the [kubernetes docs](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/). Since we told Control to look for the file at `/tmp/routes.yaml` in `GM_CONTROL_FILE_FILENAME` above, we want to mount the `routes.yaml` file contained in `routes-config` configMap to the Control container at `/tmp/`.  Thus, we will add the volume and volumeMount to the control config notes with (`#<-`) in the file below.
 
 ```yaml
 apiVersion: apps/v1
@@ -1082,7 +1080,7 @@ status:
   updatedReplicas: 1
 ```
 
-Now, copy the entire block above, run the next command and paste the whole thing in:
+Now, copy the entire block above, run the next command to create the new deployment file, and paste the whole thing in:
 
 ```bash
 nano control-file.yaml
@@ -1110,7 +1108,7 @@ sudo kubectl apply -f ./control.yaml --validate=false
 Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
 ```
 
-If you check the instances for any cluster in `greymatter list cluster`, they should now show the information from the `routes.yaml` file.
+If you check the instances for any `edge-to-service` cluster in `greymatter list cluster`, they should now show the information from the `routes.yaml` file.
 
 To revert back to the original discovery method with kuberenetes, change `GM_CONTROL_CMD` in your `control.yaml` back to `kubernetes`, and re-do the `kubectl delete` and `apply` steps to reapply it.
 
