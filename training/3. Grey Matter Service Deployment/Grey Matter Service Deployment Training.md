@@ -20,22 +20,26 @@ sudo mv certs/ /etc/ssl/quickstart/certs
 
 We will be configuring the mesh with the latest Grey Matter CLI, [available after authentication from Decipher's Nexus repository](https://nexus.production.deciphernow.com/#browse/browse:raw-hosted:greymatter%2Fgm-cli). Note: the link will say `Not Found`, sign in using the same docker nexus credentials in the top right corner.  Download the latest available version, and untar the package. At time of writing, the latest version is `v1.1.0`, which will be used in the below example.
 
-The simplest way to get the `greymatter` CLI binary onto your server is to upload it from your local machine after downloading it from Decipher's Nexus repository. For Ubuntu you'll want `greymatter-v1.1.0/greymatter.linux` of course. One way to do this is to unzip greymatter-v1.1.0.tar.gz in whatever directory you downloaded it in, and run `scp -i ~/.ssh/minikube-aws.pem greymatter-v1.1.0/greymatter.linux ubuntu@{your-ec2-ip}:~/` using the same minikube-aws.pem file you used to ssh into your instance.
+The simplest way to get the `greymatter` CLI binary onto your server is to `wget` it from Decipher's Nexus repository using your credentials. Do this in your EC2:
 
-Upload this file to the server. Inside your EC2, make it executable, and move it into your path while renaming it to `greymatter`:
+``` bash
+wget --user 'YOUR-USERNAME' --password 'YOUR-PASSWORD' https://nexus.production.deciphernow.com/repository/raw-hosted/greymatter/gm-cli/greymatter-v1.1.0.tar.gz
+```
+
+Then, still inside your EC2, make `greymatter.linux` executable, and move it into your path while renaming it to `greymatter`:
 
 ``` bash
 chmod +x greymatter.linux
 sudo mv greymatter.linux /usr/local/bin/greymatter
 ```
 
-> Note: It is absolutely necessary that the binary be renamed and put into your path for it to work. This is a known issue, and will be fixed in future versions.
+> Note: It is absolutely necessary that the binary be _renamed_ and put into your path for it to work. This is a known issue, and will be fixed in future versions.
 
 ## Configuring the Grey Matter CLI
 
 Much of what follows involves the Grey Matter CLI. This is a standalone binary, usually configured through environment variables, that interacts with the Grey Matter Control API to configure services within the mesh.
 
-We begin by configuring the CLI to connect to the Control API:
+We begin by configuring the CLI to connect to the Control API. You can copy and paste this entire block in. An explanation follows.
 
 ``` bash
 # A convenient trick for discovering your EC2's host and port
@@ -70,7 +74,7 @@ These environment variables setup the CLI to
 6. Use `https` instead of `http` when making requests to the Control API service.
 7. Don't attempt to verify the server identity (for this tutorial).
 
-Place the entirety of the above code block at the end of your `~/.profile`, since we want this configuration to persist. This is important both so that the `greymatter` command continues to function after a logout, and also so that you can open multiple SSH sessions without worrying about reconfiguring it.
+Now, place the entirety of the above code block at the end of your `~/.profile`, since we want this configuration to persist. This is important both so that the `greymatter` command continues to function after a logout, and also so that you can open multiple SSH sessions without worrying about reconfiguring it.
 
 Verify your CLI connection with:
 

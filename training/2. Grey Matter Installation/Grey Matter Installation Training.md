@@ -26,10 +26,10 @@ At time of writing, this can be accomplished by clicking Launch Instance from th
 
 Go to Running Instances in the EC2 console, select the instance you just launched, and copy out the IP address. Use this to SSH into your server. The Ubuntu EC2 AMI uses user "ubuntu".
 
-For example, if the public IP address of your instance is `34.227.100.211`, and you stored your key pair file as `~/.ssh/minikube-aws.pem`, (`chmod 600`) log in with 
+For example, if the public IP address of your instance is `34.227.100.211`, and you stored your key pair file as `~/.ssh/training.pem`, (`chmod 600`) log in with 
 
 ``` bash
-ssh -i ~/.ssh/minikube-aws.pem ubuntu@34.227.100.211
+ssh -i ~/.ssh/training.pem ubuntu@34.227.100.211
 ```
 
 We are now ready to install the prerequisites for this tutorial on the EC2 instance.

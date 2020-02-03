@@ -748,7 +748,7 @@ sudo kubectl port-forward consul-consul-server-0 8600:8500
 This exposes the UI server on 8600 on your EC2, but it will not accept connections at your EC2 public IP, so we do one more port-forward using SSH (or PuTTY) from our local machine to the EC2 server:
 
 ```bash
-ssh -i ~/.ssh/minikube-aws.pem ubuntu@{your-ec2-ip} -L 8500:localhost:8600
+ssh -i ~/.ssh/training.pem ubuntu@{your-ec2-ip} -L 8500:localhost:8600
 ```
 
 Finally, on your local machine, you should now be able to go to http://localhost:8500 to see the Consul UI with all Grey Matter services listed alongside the consul services themselves:
