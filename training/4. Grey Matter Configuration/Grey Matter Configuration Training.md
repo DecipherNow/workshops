@@ -925,9 +925,9 @@ If you followed the Consul instructions earlier, yours may look something like t
 
 ![Edit Control deployment](./1573677890981.png)
 
-We won't use this deployment file, but instead we will create a new control-file.yaml file (below), and in it contains the following changes:
+We won't use this deployment file, but instead we will create a new `control-file.yaml` file (below), and in it contains the following changes:
 
-1. Environment varialbe `GM_CONTROL_CM` will be set to `"file"` to set the discovery type to flat file. Then, the variables `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` will be added,  telling GM Control what the name of the file to use is (in this case `/tmp/routes.yaml`), and what type of file it is (in this case `yaml`). Take a look at the first set of commented arrows (`#<-`) in the env section below to see this change.
+1. Environment variable `GM_CONTROL_CMD` will be set to `"file"` to set the discovery type to flat file. Then, the variables `GM_CONTROL_FILE_FILENAME` and `GM_CONTROL_FILE_FORMAT` will be added,  telling GM Control what the name of the file to use is (in this case `/tmp/routes.yaml`), and what type of file it is (in this case `yaml`). Take a look at the first set of commented arrows (`#<-`) in the env section below to see this change.
 
 2. A volume mount actually adding the file `routes.yaml`.  We will mount the volume pointing at the configMap that we just created, which contains the `routes.yaml` information. For more information on using configMaps, see the [kubernetes docs](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/). Since we told Control to look for the file at `/tmp/routes.yaml` in `GM_CONTROL_FILE_FILENAME` above, we want to mount the `routes.yaml` file contained in `routes-config` configMap to the Control container at `/tmp/`.  Thus, we will add the volume and volumeMount to the control config notes with (`#<-`) in the file below.
 
@@ -1088,7 +1088,7 @@ nano control-file.yaml
 
 Save and quit.
 
-Next, we will destroy the existing Control deployment"
+Next, we will destroy the existing Control deployment
 
 ```bash
 sudo kubectl delete deployment control
