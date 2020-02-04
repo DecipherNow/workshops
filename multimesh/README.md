@@ -10,7 +10,7 @@ This workshop covers multi-mesh configuration with Grey Matter. The workshop mat
 
 ### Deploying an EC2 instance
 
-To get started you will need to deploy an AWS instance using the AMI `ami-03165df1bdcc06a0d`.
+To get started you will need to deploy an AWS instance using the AMI `ami-058c877a9ee972db9`.
 
 First, create a new security group with a TCP rule to allow traffic on port `30000` and enable SSH connections:
 
@@ -28,10 +28,12 @@ You'll also need to get the name of the key-pair you use to login to AWS ec2 ins
 Using the security group ID returned from the first command and your key name, execute:
 
 ```sh
-aws ec2 run-instances --image-id ami-03165df1bdcc06a0d --count 1 --key-name <key-pair-name> --instance-type t2.large --security-group-ids <security-group-id>
+aws ec2 run-instances --image-id ami-058c877a9ee972db9 --count 1 --key-name <key-pair-name> --instance-type t2.large --security-group-ids <security-group-id>
 ```
 
 Once the instance is up, you can start working through the [workshop material.](./workshop.md)
+
+Note: an alias `destroy` was added to the bash profile of the workshop AMI. This command will bring down the mesh and delete secrets so that the workshop can be restarted from a clean slate.
 
 ## Building the AMI
 

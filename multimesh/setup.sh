@@ -5,7 +5,7 @@ clear
 read -p "Docker Email: " username
 read -sp "Docker Password: " password
 echo ""
-read -p "Enter a unique name for your mesh (e.g. my-super-cool-mesh): " meshid
+read -p "Enter a unique name for your mesh, no spaces (e.g. bobs-cool-mesh): " meshid
 
 export MESH_ID=$meshid
 export DOCKER_USER=$username
@@ -16,12 +16,14 @@ echo ""
 # Update the ping-pong deployment with the MESH_ID
 envsubst '${MESH_ID}' < template.yaml > deploy.yaml
 
-echo "🐳 Starting Minikube..."
-sudo minikube config set WantUpdateNotification false # avoids issue when sourcing `minikube ip` from .profile
-sudo minikube start --memory 6144 --cpus 4 --vm-driver=none &>/dev/null
+echo "🛠️ Installing dependencies..."
+sudo apt-get update &>/dev/null
+sudo apt-get -y install jq &>/dev/null
 
-# Dependencies
-echo "⬇️  Downloading the Greymatter cli..."
+echo "🐳 Starting Minikube..."
+sudo minikube start --vm-driver=none &>/dev/null
+
+echo "⬇️  Installing the Grey Matter CLI..."
 
 curl -s -u $DOCKER_USER:$DOCKER_PASSWORD https://nexus.production.deciphernow.com/repository/raw-hosted/greymatter/gm-cli/greymatter-v1.0.2.tar.gz --output greymatter-v1.0.2.tar.gz
 tar -xzf greymatter-v1.0.2.tar.gz
