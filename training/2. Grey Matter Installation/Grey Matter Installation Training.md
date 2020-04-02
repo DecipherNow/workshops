@@ -51,9 +51,11 @@ sudo snap install kubectl --classic
 sudo snap install helm --classic --channel=2.16
 
 # Minikube
-wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-chmod +x minikube-linux-amd64
-sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
+  && chmod +x minikube
+  
+sudo mkdir -p /usr/local/bin/
+sudo install minikube /usr/local/bin/
 ```
 
 ## Minikube setup
@@ -126,7 +128,7 @@ Save your changes to these two files and proceed.
 
 We're now going to add another Helm repository, this time for Grey Matter itself, and use it to install the latest release.
 
-You will need your Docker registry username and password again.
+You will need your Nexus email and password again.
 
 ``` bash
 sudo helm repo add decipher https://nexus.production.deciphernow.com/repository/helm-hosted --username 'YOUR USERNAME' --password 'YOUR PASSWORD'
