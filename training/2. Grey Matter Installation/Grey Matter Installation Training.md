@@ -128,10 +128,10 @@ Save your changes to these two files and proceed.
 
 We're now going to add another Helm repository, this time for Grey Matter itself, and use it to install the latest release.
 
-You will need your Nexus email and password again.
+You will need your Nexus email and password.
 
 ``` bash
-sudo helm repo add decipher https://nexus.production.deciphernow.com/repository/helm-hosted --username 'YOUR USERNAME' --password 'YOUR PASSWORD'
+sudo helm repo add decipher https://nexus.production.deciphernow.com/repository/helm-hosted --username 'EMAIL' --password 'YOUR PASSWORD'
 
 sudo helm repo update
 ```
