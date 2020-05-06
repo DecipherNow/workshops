@@ -501,7 +501,7 @@ Congratulations, you have successfully deployed a service to Grey Matter!
 
 > `TODO`: Expand and merge with installation troubleshooting
 
-If you have any trouble following these instructions, or any feedback, please submit a ticket at https://support.greymatter.io, where we also maintain a knowledgebase and further troubleshooting information.
+If you have any trouble following these instructions, or any feedback, please submit a ticket at <https://support.greymatter.io>, where we also maintain a knowledgebase and further troubleshooting information.
 
 Below are a few common problems encountered with these instructions in particular and associated explanations and solutions.
 
